@@ -1,4 +1,5 @@
 "use client";
+import { Suspense } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useSearchParams } from "next/navigation";
@@ -37,58 +38,69 @@ function toProductCard(p: any): Product {
   };
 }
 
-export default function CatalogPage() {
+function CatalogContent() {
   const sp = useSearchParams();
   const all = useQuery(api.products.list, { status: "Active" });
 
   const products = useMemo(() => {
     if (!all) return null;
     let list = all.map(toProductCard);
-
     const brand = sp.get("brand");
     const gender = sp.get("gender");
     const whenToWear = sp.get("whenToWear");
     const inStock = sp.get("inStock");
     const sort = sp.get("sort");
-
     if (brand) list = list.filter((p) => p.brand === brand);
     if (gender) list = list.filter((p) => p.gender === gender);
     if (whenToWear) list = list.filter((p) => p.whenToWear.includes(whenToWear as Product["whenToWear"][number]));
     if (inStock !== null && inStock !== "") list = list.filter((p) => p.inStock === (inStock === "true"));
     if (sort === "price_asc") list = [...list].sort((a, b) => a.price - b.price);
     if (sort === "price_desc") list = [...list].sort((a, b) => b.price - a.price);
-
     return list;
   }, [all, sp]);
 
+  return (
+    <>
+      {products === null ? (
+        <div className="flex items-center gap-3 py-24 justify-center">
+          <div className="w-5 h-5 border-2 border-[#C9A96E] border-t-transparent rounded-full animate-spin" />
+          <span className="text-white/30 text-sm">Loading products…</span>
+        </div>
+      ) : (
+        <>
+          <FilterBar total={products.length} />
+          {products.length === 0 ? (
+            <div className="py-24 text-center">
+              <p className="text-white/30 text-lg">No products found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
+              {products.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </>
+  );
+}
+
+export default function CatalogPage() {
   return (
     <>
       <AnnouncementBar />
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-white text-3xl sm:text-4xl font-bold tracking-tight mb-6">All Products</h1>
-
-        {products === null ? (
+        <Suspense fallback={
           <div className="flex items-center gap-3 py-24 justify-center">
             <div className="w-5 h-5 border-2 border-[#C9A96E] border-t-transparent rounded-full animate-spin" />
             <span className="text-white/30 text-sm">Loading products…</span>
           </div>
-        ) : (
-          <>
-            <FilterBar total={products.length} />
-            {products.length === 0 ? (
-              <div className="py-24 text-center">
-                <p className="text-white/30 text-lg">No products found.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
-                {products.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+        }>
+          <CatalogContent />
+        </Suspense>
       </main>
       <Footer />
     </>
