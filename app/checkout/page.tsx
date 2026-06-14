@@ -118,7 +118,7 @@ export default function CheckoutPage() {
       <header>
         <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
           <Link href="/">
-            <Image src="/logo-main.png" alt="Naire Scents" width={160} height={64} className="h-10 w-auto object-contain" />
+            <Image src="/logo-main.png" alt="Naire Scents" width={200} height={80} className="h-14 w-auto object-contain" />
           </Link>
           <button type="button" onClick={openCart} className="relative text-[#C9A96E] hover:opacity-80 transition-opacity p-1">
             <ShoppingBag className="w-6 h-6" />
@@ -316,42 +316,42 @@ export default function CheckoutPage() {
           {/* ════ RIGHT COLUMN (sticky) ════ */}
           <div className="lg:w-[42%] shrink-0">
             <div className="lg:sticky lg:top-0 px-4 sm:px-8 lg:pl-14 py-10 space-y-5">
-              <h2 className="text-white font-bold text-lg">Order summary</h2>
+              <h2 className="text-white font-bold text-xl">Order summary</h2>
 
               {/* Items */}
-              <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
+              <div className="space-y-5 max-h-80 overflow-y-auto pr-1">
                 {items.length === 0 ? (
-                  <p className="text-white/30 text-sm py-4">Your cart is empty.</p>
+                  <p className="text-white/30 text-base py-4">Your cart is empty.</p>
                 ) : items.map((item) => (
-                  <div key={`${item.productId}-${item.variantId ?? ""}`} className="flex gap-3 items-start">
-                    <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-white/10 shrink-0 border border-white/15">
+                  <div key={`${item.productId}-${item.variantId ?? ""}`} className="flex gap-4 items-start">
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-white/10 shrink-0 border border-white/15">
                       {item.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-white/20 text-lg">✦</span>
+                          <span className="text-white/20 text-xl">✦</span>
                         </div>
                       )}
-                      <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white/30 text-white text-[9px] font-bold flex items-center justify-center">
+                      <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white/30 text-white text-[10px] font-bold flex items-center justify-center">
                         {item.quantity}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-xs font-semibold leading-snug line-clamp-2">{item.title}</p>
-                      <p className="text-white/40 text-xs mt-0.5">Ksh {item.price.toLocaleString()} × {item.quantity}</p>
+                      <p className="text-white text-sm font-semibold leading-snug line-clamp-2">{item.title}</p>
+                      <p className="text-white/40 text-sm mt-1">Ksh {item.price.toLocaleString()} × {item.quantity}</p>
                     </div>
-                    <p className="text-white text-xs font-bold shrink-0">Ksh {(item.price * item.quantity).toLocaleString()}.00</p>
+                    <p className="text-white text-sm font-bold shrink-0">Ksh {(item.price * item.quantity).toLocaleString()}.00</p>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-white/15 pt-4 space-y-2.5">
-                <div className="flex justify-between text-sm">
+              <div className="border-t border-white/15 pt-4 space-y-3">
+                <div className="flex justify-between text-base">
                   <span className="text-white/60">Subtotal</span>
                   <span className="text-white font-medium">Ksh {subtotal.toLocaleString()}.00</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-base">
                   <span className="text-white/60">Shipping</span>
                   <span className="text-white font-medium">
                     {shippingCost === 0 ? "FREE" : `Ksh ${shippingCost.toLocaleString()}.00`}
@@ -360,11 +360,11 @@ export default function CheckoutPage() {
               </div>
 
               <div className="border-t border-white/15 pt-4 flex justify-between items-start">
-                <span className="text-white font-bold text-base">Total</span>
+                <span className="text-white font-bold text-lg">Total</span>
                 <div className="text-right">
-                  <p className="text-white/40 text-[10px] uppercase tracking-wide">KES</p>
-                  <p className="text-[#C9A96E] font-bold text-2xl leading-none">Ksh {total.toLocaleString()}.00</p>
-                  <p className="text-white/30 text-[10px] mt-0.5">Including taxes</p>
+                  <p className="text-white/40 text-xs uppercase tracking-wide">KES</p>
+                  <p className="text-[#C9A96E] font-bold text-3xl leading-none">Ksh {total.toLocaleString()}.00</p>
+                  <p className="text-white/30 text-xs mt-1">Including taxes</p>
                 </div>
               </div>
             </div>
