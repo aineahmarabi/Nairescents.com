@@ -25,7 +25,6 @@ function RadioDot({ on }: { on: boolean }) {
 
 interface FormState {
   email: string;
-  phone: string;
   firstName: string;
   lastName: string;
   address: string;
@@ -44,7 +43,6 @@ export default function CheckoutPage() {
 
   const [form, setForm] = useState<FormState>({
     email: "",
-    phone: "",
     firstName: "",
     lastName: "",
     address: "",
@@ -139,28 +137,21 @@ export default function CheckoutPage() {
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row">
 
           {/* ════ LEFT COLUMN ════ */}
-          <div className="flex-1 px-4 sm:px-8 py-10 lg:border-r lg:border-white/15 space-y-10 lg:pr-12">
+          <div className="lg:w-[58%] px-4 sm:px-8 py-10 lg:border-r lg:border-white/15 space-y-10 lg:pr-14">
 
             {/* Contact */}
             <section className="space-y-3">
               <h2 className="text-white font-bold text-lg">Contact</h2>
               <div>
                 <input
-                  type="email"
+                  type="text"
                   placeholder="Email or mobile phone number"
                   value={form.email}
                   onChange={(e) => { set("email", e.target.value); setEmailError(false); }}
                   className={`${INPUT} ${emailError ? "border-red-400" : ""}`}
                 />
-                {emailError && <p className="text-red-400 text-xs mt-1">Please enter an email or phone number.</p>}
+                {emailError && <p className="text-red-400 text-xs mt-1">Enter an email or phone number.</p>}
               </div>
-              <input
-                type="tel"
-                placeholder="Phone (WhatsApp preferred)"
-                value={form.phone}
-                onChange={(e) => set("phone", e.target.value)}
-                className={INPUT}
-              />
             </section>
 
             {/* Delivery */}
@@ -323,8 +314,8 @@ export default function CheckoutPage() {
           </div>
 
           {/* ════ RIGHT COLUMN (sticky) ════ */}
-          <div className="lg:w-[400px] shrink-0">
-            <div className="lg:sticky lg:top-0 px-4 sm:px-8 lg:pl-12 py-10 space-y-5">
+          <div className="lg:w-[42%] shrink-0">
+            <div className="lg:sticky lg:top-0 px-4 sm:px-8 lg:pl-14 py-10 space-y-5">
               <h2 className="text-white font-bold text-lg">Order summary</h2>
 
               {/* Items */}
