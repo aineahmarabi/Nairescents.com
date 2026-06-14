@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node --require ./require-hook.cjs node_modules/next/dist/bin/next dev",
-    "build": "node --require ./require-hook.cjs node_modules/next/dist/bin/next build",
+    "build": "npx convex deploy && node --require ./require-hook.cjs node_modules/next/dist/bin/next build",
     "start": "node --require ./require-hook.cjs node_modules/next/dist/bin/next start",
     "lint": "next lint"
   },
