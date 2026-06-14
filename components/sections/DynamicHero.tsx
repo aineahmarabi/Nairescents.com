@@ -152,15 +152,25 @@ function MobilePanelCard({ panel, images }: { panel: DoorPanel; images: string[]
   );
 }
 
-export default function DynamicHero() {
+interface DynamicHeroProps {
+  initialPanelImages?: string[][];
+}
+
+export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
   const [hovered, setHovered] = useState<number | null>(null);
   const [featuredImg, setFeaturedImg] = useState("");
 
   const featuredSlot = useQuery(api.hero.getBySlot, { slot: "featured" });
-  const menImages    = usePanelImages("Men");
-  const womenImages  = usePanelImages("Women");
-  const bestImages   = usePanelImages(undefined, "Best Seller");
-  const newImages    = usePanelImages(undefined, "New In");
+  const rawMen    = usePanelImages("Men");
+  const rawWomen  = usePanelImages("Women");
+  const rawBest   = usePanelImages(undefined, "Best Seller");
+  const rawNew    = usePanelImages(undefined, "New In");
+
+  // Use server-prefetched images immediately; switch to live Convex data once it loads
+  const menImages   = rawMen.length   > 0 ? rawMen   : (initialPanelImages?.[0] ?? []);
+  const womenImages = rawWomen.length > 0 ? rawWomen : (initialPanelImages?.[1] ?? []);
+  const bestImages  = rawBest.length  > 0 ? rawBest  : (initialPanelImages?.[2] ?? []);
+  const newImages   = rawNew.length   > 0 ? rawNew   : (initialPanelImages?.[3] ?? []);
 
   const panelImages = [menImages, womenImages, bestImages, newImages];
 
