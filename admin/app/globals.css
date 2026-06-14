@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-green: #0B3D33;
+  --brand-gold: #C9A96E;
+  --content-bg: #F5F3EE;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Jost', sans-serif;
+  background-color: var(--content-bg);
+  color: #1a1a1a;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1c9b8; border-radius: 99px; }
+
+select option { background: white; color: #1a1a1a; }

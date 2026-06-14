@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-bg: #0B3D33;
+  --brand-bg-light: #0e4a3d;
+  --brand-gold: #C9A96E;
+  --brand-gold-hover: #d4b87a;
+  --brand-card-border: rgba(255, 255, 255, 0.15);
+  --brand-text: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  background-color: var(--brand-bg);
+  color: var(--brand-text);
+  font-family: var(--font-jost), sans-serif;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--brand-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--brand-gold);
+  border-radius: 3px;
+}

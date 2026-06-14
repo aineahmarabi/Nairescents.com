@@ -1,0 +1,62 @@
+{
+  "products": [],
+  "orders": [],
+  "customers": [],
+  "discounts": [],
+  "settings": {
+    "storeName": "Aineah Bwire",
+    "address": "Stanbank House Shop A604, Wing A 6th floor, Nairobi, Kenya",
+    "phone": "+254758333996",
+    "whatsapp": "+254758333996",
+    "email": "nairescents@gmail.com",
+    "hours": "Monday – Saturday, 9 AM – 5 PM",
+    "social": {
+      "facebook": "https://www.facebook.com/people/Naire-Scents/61589345817950/",
+      "instagram": "https://www.instagram.com/naire_scents",
+      "tiktok": "https://www.tiktok.com/@naire_scents"
+    }
+  },
+  "hero": [
+    {
+      "id": "1",
+      "label": "SHOP",
+      "name": "For Him",
+      "sub": "Bold. Woody. Powerful.",
+      "href": "/gender/men",
+      "bg": "linear-gradient(135deg, #1a2a20 0%, #0B3D33 50%, #0a2e27 100%)",
+      "image": ""
+    },
+    {
+      "id": "2",
+      "label": "SHOP",
+      "name": "For Her",
+      "sub": "Soft. Floral. Timeless.",
+      "href": "/gender/women",
+      "bg": "linear-gradient(135deg, #2a1a1a 0%, #3d1a1a 100%)",
+      "image": ""
+    },
+    {
+      "id": "3",
+      "label": "TRENDING",
+      "name": "Best Sellers",
+      "sub": "Our most-loved scents.",
+      "href": "/products",
+      "bg": "linear-gradient(135deg, #1a1508 0%, #2a2010 100%)",
+      "image": ""
+    },
+    {
+      "id": "4",
+      "label": "JUST IN",
+      "name": "New In",
+      "sub": "Fresh arrivals.",
+      "href": "/products",
+      "bg": "linear-gradient(135deg, #08101a 0%, #0a1a2e 100%)",
+      "image": ""
+    }
+  ],
+  "adminCredentials": {
+    "email": "admin@nairescents.com",
+    "password": "NaireAdmin2025!"
+  },
+  "users": []
+}
