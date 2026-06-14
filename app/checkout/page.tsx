@@ -85,7 +85,7 @@ export default function CheckoutPage() {
           </div>
           <h1 className="text-white text-2xl font-bold mb-3">Order Placed!</h1>
           <p className="text-white/50 text-sm leading-relaxed mb-8">
-            Thank you, {form.firstName}. Your order has been received. We'll confirm via WhatsApp or email shortly.
+            Thank you, {form.firstName}. Your order has been received. We&apos;ll confirm via WhatsApp or email shortly.
           </p>
           <Link
             href="/"

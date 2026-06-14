@@ -10,7 +10,6 @@ import FilterBar from "@/components/ui/FilterBar";
 import ProductCard from "@/components/ui/ProductCard";
 import type { Product } from "@/lib/types";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toProductCard(p: any): Product {
   return {
     id: p._id,
