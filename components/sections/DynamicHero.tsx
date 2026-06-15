@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 const ease = [0.16, 1, 0.3, 1] as const;
-const panelEase = [0.4, 0, 0.2, 1] as const;
+// Expo-out easing string for native CSS transitions on layout props
+const PANEL_TRANSITION = "flex-grow 0.6s cubic-bezier(0.16, 1, 0.3, 1)";
 
 interface DoorPanel {
   id: string;
@@ -106,25 +107,25 @@ function PanelContent({ panel, images, isHot }: { panel: DoorPanel; images: stri
         <p className="text-[#C9A96E] text-[10px] tracking-[0.3em] uppercase font-semibold">{panel.label}</p>
         <motion.h2
           animate={{ opacity: isHot ? 1 : 0.8 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.35, delay: isHot ? 0.12 : 0 }}
           className="text-white font-bold tracking-tight leading-tight"
           style={{
             fontSize: isHot ? "1.35rem" : "1.1rem",
             writingMode: isHot ? "horizontal-tb" : "vertical-rl",
             textOrientation: "mixed",
-            transition: "font-size 0.3s ease",
+            transition: "font-size 0.45s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         >
           {panel.name}
         </motion.h2>
         <motion.p
-          animate={{ opacity: isHot ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
+          animate={{ opacity: isHot ? 1 : 0, y: isHot ? 0 : 4 }}
+          transition={{ duration: 0.35, delay: isHot ? 0.2 : 0 }}
           className="text-white/70 text-xs mt-1 max-w-[160px] leading-relaxed"
         >
           {panel.sub}
         </motion.p>
-        <motion.div animate={{ opacity: isHot ? 1 : 0, y: isHot ? 0 : 6 }} transition={{ duration: 0.3 }}>
+        <motion.div animate={{ opacity: isHot ? 1 : 0, y: isHot ? 0 : 6 }} transition={{ duration: 0.35, delay: isHot ? 0.28 : 0 }}>
           <Link
             href={panel.href}
             className="inline-flex items-center gap-1.5 mt-3 text-[#C9A96E] text-xs font-semibold tracking-widest uppercase border-b border-[#C9A96E]/50 hover:border-[#C9A96E] transition-colors pb-0.5"
@@ -227,15 +228,18 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
               <motion.div
                 key={panel.id}
                 initial={{ opacity: 0, x: 28 }}
-                animate={{ opacity: 1, x: 0, flexGrow: isHot ? 3.5 : isDimmed ? 0.5 : 1 }}
+                animate={{ opacity: 1, x: 0 }}
                 transition={{
-                  opacity:  { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
-                  x:        { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
-                  flexGrow: { duration: 0.4, ease: panelEase },
+                  opacity: { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
+                  x:       { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
                 }}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
                 className="relative flex flex-col justify-end p-6 overflow-hidden cursor-pointer"
+                style={{
+                  flexGrow: isHot ? 3.5 : isDimmed ? 0.5 : 1,
+                  transition: PANEL_TRANSITION,
+                }}
               >
                 <PanelContent panel={panel} images={panelImages[i]} isHot={isHot} />
               </motion.div>
