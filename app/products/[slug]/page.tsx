@@ -222,9 +222,9 @@ export default function ProductDetailPage({ params }: Props) {
             <div className="h-px bg-white/10" />
 
             {/* Stepper + Add to Cart */}
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-3">
               {/* Pill stepper */}
-              <div className="flex items-center bg-[#0e4a3d] rounded-full px-1 py-1 gap-0.5">
+              <div className="flex items-center bg-[#0e4a3d] rounded-full px-1 py-1 gap-0.5 flex-none">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
                   aria-label="Decrease quantity"
@@ -244,14 +244,14 @@ export default function ProductDetailPage({ params }: Props) {
                 </button>
               </div>
 
-              {/* Add to Cart — text-style with icon */}
+              {/* Add to Cart — outlined button */}
               <button
                 onClick={handleAddToCart}
                 disabled={!product!.inStock}
-                className={`flex items-center gap-2 text-sm font-semibold tracking-widest uppercase transition-opacity ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold tracking-widest uppercase transition-all ${
                   product!.inStock
-                    ? "text-[#C9A96E] hover:opacity-60 active:opacity-40"
-                    : "text-white/20 cursor-not-allowed"
+                    ? "border border-[#C9A96E]/50 text-[#C9A96E] hover:bg-[#C9A96E]/10 active:scale-[0.98]"
+                    : "border border-white/10 text-white/20 cursor-not-allowed"
                 }`}
               >
                 <ShoppingBag size={16} strokeWidth={1.5} />
@@ -259,13 +259,13 @@ export default function ProductDetailPage({ params }: Props) {
               </button>
             </div>
 
-            {/* Buy it now */}
+            {/* Buy it now — solid gold button */}
             {product!.inStock && (
               <button
                 onClick={handleBuyNow}
-                className="text-sm text-white/45 hover:text-white/75 transition-colors tracking-wide text-left"
+                className="w-full py-3 rounded-xl bg-[#C9A96E] text-[#0B3D33] text-sm font-bold tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all"
               >
-                Buy it now →
+                Buy it now
               </button>
             )}
 
