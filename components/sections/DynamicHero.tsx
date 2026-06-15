@@ -227,19 +227,16 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
             return (
               <motion.div
                 key={panel.id}
-                initial={{ opacity: 0, x: 28 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, x: 28, flexGrow: 1 }}
+                animate={{ opacity: 1, x: 0, flexGrow: isHot ? 3.5 : isDimmed ? 0.5 : 1 }}
                 transition={{
-                  opacity: { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
-                  x:       { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
+                  opacity:  { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
+                  x:        { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
+                  flexGrow: { type: "spring", stiffness: 120, damping: 22, mass: 1 },
                 }}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
                 className="relative flex flex-col justify-end p-6 overflow-hidden cursor-pointer"
-                style={{
-                  flexGrow: isHot ? 3.5 : isDimmed ? 0.5 : 1,
-                  transition: PANEL_TRANSITION,
-                }}
               >
                 <PanelContent panel={panel} images={panelImages[i]} isHot={isHot} />
               </motion.div>
