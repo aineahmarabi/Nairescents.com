@@ -14,6 +14,7 @@ import type { Product } from "@/lib/types";
 function toProductCard(p: any): Product {
   return {
     id: p._id,
+    handle: p.handle ?? "",
     title: p.title,
     description: p.descriptionHtml ?? "",
     price: p.price,

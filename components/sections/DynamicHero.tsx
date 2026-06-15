@@ -222,27 +222,35 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
         {/* 4 expanding door panels — 68% */}
         <div className="flex flex-1 gap-[1px] bg-[#C9A96E]/15 overflow-hidden">
           {PANELS.map((panel, i) => {
-            const isHot     = hovered === i;
-            const isDimmed  = hovered !== null && hovered !== i;
+            const isHot    = hovered === i;
+            const isDimmed = hovered !== null && hovered !== i;
             return (
-              <motion.div
+              /* Outer plain div owns the flex-grow CSS transition — no Framer interference */
+              <div
                 key={panel.id}
-                initial={{ opacity: 0, x: 28 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{
-                  opacity: { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
-                  x:       { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
-                }}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
-                className="relative flex flex-col justify-end p-6 overflow-hidden cursor-pointer"
+                className="relative overflow-hidden cursor-pointer"
                 style={{
                   flexGrow: isHot ? 3.5 : isDimmed ? 0.5 : 1,
-                  transition: PANEL_TRANSITION,
+                  transitionProperty: "flex-grow",
+                  transitionDuration: "0.65s",
+                  transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
                 }}
               >
-                <PanelContent panel={panel} images={panelImages[i]} isHot={isHot} />
-              </motion.div>
+                {/* Inner motion.div handles page-load entry animation only */}
+                <motion.div
+                  initial={{ opacity: 0, x: 28 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    opacity: { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
+                    x:       { duration: 0.55, ease, delay: 0.15 + i * 0.08 },
+                  }}
+                  className="absolute inset-0 flex flex-col justify-end p-6"
+                >
+                  <PanelContent panel={panel} images={panelImages[i]} isHot={isHot} />
+                </motion.div>
+              </div>
             );
           })}
         </div>

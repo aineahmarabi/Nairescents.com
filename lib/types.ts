@@ -8,6 +8,7 @@ export type WhenToWear = typeof WHEN_TO_WEAR[number];
 
 export interface Product {
   id: string;
+  handle: string;
   title: string;
   description: string;
   price: number;

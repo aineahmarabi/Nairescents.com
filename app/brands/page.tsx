@@ -16,6 +16,7 @@ import Link from "next/link";
 function toProductCard(p: any): Product {
   return {
     id: p._id,
+    handle: p.handle ?? "",
     title: p.title,
     description: p.descriptionHtml ?? "",
     price: p.price,
