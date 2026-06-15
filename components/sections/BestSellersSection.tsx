@@ -17,6 +17,7 @@ export default function BestSellersSection() {
 
   const mapped = (products ?? []).slice(0, 8).map((p) => ({
     id: p._id,
+    handle: p.handle ?? "",
     title: p.title,
     description: p.descriptionHtml ?? "",
     price: p.price,
