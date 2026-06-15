@@ -248,7 +248,7 @@ export default function ProductDetailPage({ params }: Props) {
               <button
                 onClick={handleAddToCart}
                 disabled={!product!.inStock}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold tracking-widest uppercase transition-all ${
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold tracking-widest uppercase transition-all ${
                   product!.inStock
                     ? "border border-[#C9A96E]/50 text-[#C9A96E] hover:bg-[#C9A96E]/10 active:scale-[0.98]"
                     : "border border-white/10 text-white/20 cursor-not-allowed"
@@ -263,7 +263,7 @@ export default function ProductDetailPage({ params }: Props) {
             {product!.inStock && (
               <button
                 onClick={handleBuyNow}
-                className="w-full py-3 rounded-xl bg-[#C9A96E] text-[#0B3D33] text-sm font-bold tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all"
+                className="px-8 py-3 rounded-xl bg-[#C9A96E] text-[#0B3D33] text-sm font-bold tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all"
               >
                 Buy it now
               </button>
