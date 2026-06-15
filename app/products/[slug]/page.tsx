@@ -140,7 +140,7 @@ export default function ProductDetailPage({ params }: Props) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease }}
           >
-            <div ref={imgRef} className="relative aspect-[3/4] rounded-2xl overflow-hidden">
+            <div ref={imgRef} className="relative aspect-[3/4] rounded-2xl overflow-hidden max-h-[480px]">
               {img ? (
                 <Image
                   src={img}
