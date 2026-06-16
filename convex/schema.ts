@@ -164,4 +164,32 @@ export default defineSchema({
     email: v.string(),
     role: v.union(v.literal("admin"), v.literal("customer")),
   }).index("by_clerk_id", ["clerkId"]),
+
+  contactSubmissions: defineTable({
+    name: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    comment: v.string(),
+    status: v.union(v.literal("new"), v.literal("read"), v.literal("responded")),
+  }).index("by_status", ["status"]),
+
+  analyticsEvents: defineTable({
+    sessionId: v.string(),
+    type: v.union(
+      v.literal("pageview"),
+      v.literal("product_view"),
+      v.literal("add_to_cart"),
+      v.literal("checkout_started"),
+      v.literal("order_placed")
+    ),
+    path: v.optional(v.string()),
+    productId: v.optional(v.string()),
+    productTitle: v.optional(v.string()),
+    value: v.optional(v.number()),
+    referrer: v.optional(v.string()),
+    device: v.optional(v.union(v.literal("mobile"), v.literal("desktop"))),
+    isNewVisitor: v.optional(v.boolean()),
+  })
+    .index("by_session", ["sessionId"])
+    .index("by_type", ["type"]),
 });

@@ -1,13 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import MetricCard from "@/components/admin/ui/MetricCard";
 import SalesChart from "@/components/admin/charts/SalesChart";
-import { Package, CheckCircle, Clock } from "lucide-react";
-
-const DATE_RANGES = ["Today", "Yesterday", "Last 7 days", "Last 30 days", "This month"];
+import { getOrders } from "@/lib/admin-api";
+import { RANGE_KEYS, RangeKey, getRangeBounds, pctChange, bucketCounts, dayLabel } from "@/lib/dateRanges";
+import type { Order } from "@/lib/types";
+import { Package, CheckCircle, Clock, Users, ShoppingCart, TrendingUp, Percent } from "lucide-react";
 
 function greeting() {
   const h = new Date().getHours();
@@ -20,7 +21,21 @@ export default function AdminDashboardPage() {
   const { user } = useUser();
   const products = useQuery(api.products.list, {});
   const settings = useQuery(api.settings.getAll);
-  const [range, setRange] = useState("Last 7 days");
+  const [range, setRange] = useState<RangeKey>("Last 7 days");
+  const [orders, setOrders] = useState<Order[] | null>(null);
+
+  const bounds = useMemo(() => getRangeBounds(range), [range]);
+  const events = useQuery(api.analytics.eventsSince, { since: bounds.prevStart });
+  const liveVisitors = useQuery(api.analytics.liveVisitors);
+
+  useEffect(() => {
+    function load() {
+      getOrders().then(setOrders).catch(() => setOrders([]));
+    }
+    load();
+    const t = setInterval(load, 30000);
+    return () => clearInterval(t);
+  }, []);
 
   const storeName = settings?.storeName ?? "Naire Scents";
   const adminName = user?.firstName ?? user?.fullName ?? storeName;
@@ -30,6 +45,54 @@ export default function AdminDashboardPage() {
   const lowStock = products?.filter((p) => p.inventory === 0 && p.trackInventory).length ?? 0;
 
   const loading = products === undefined;
+
+  const stats = useMemo(() => {
+    const evts = events ?? [];
+    const cur = evts.filter((e) => e._creationTime >= bounds.start && e._creationTime < bounds.end);
+    const prev = evts.filter((e) => e._creationTime >= bounds.prevStart && e._creationTime < bounds.prevEnd);
+
+    const sessionsCur = new Set(cur.map((e) => e.sessionId)).size;
+    const sessionsPrev = new Set(prev.map((e) => e.sessionId)).size;
+    const sessionsSpark = bucketCounts(cur.map((e) => e._creationTime), bounds.start, bounds.end);
+
+    const ordersList = orders ?? [];
+    const ordersCur = ordersList.filter((o) => {
+      const t = new Date(o.createdAt).getTime();
+      return t >= bounds.start && t < bounds.end;
+    });
+    const ordersPrev = ordersList.filter((o) => {
+      const t = new Date(o.createdAt).getTime();
+      return t >= bounds.prevStart && t < bounds.prevEnd;
+    });
+    const salesCur = ordersCur.reduce((s, o) => s + o.total, 0);
+    const salesPrev = ordersPrev.reduce((s, o) => s + o.total, 0);
+    const salesSpark = bucketCounts(
+      ordersCur.map((o) => new Date(o.createdAt).getTime()),
+      bounds.start,
+      bounds.end
+    );
+
+    const conversionCur = sessionsCur > 0 ? (ordersCur.length / sessionsCur) * 100 : 0;
+    const conversionPrev = sessionsPrev > 0 ? (ordersPrev.length / sessionsPrev) * 100 : 0;
+
+    const chartData = ordersCur.length
+      ? Object.entries(
+          ordersCur.reduce<Record<string, number>>((acc, o) => {
+            const k = dayLabel(new Date(o.createdAt).getTime());
+            acc[k] = (acc[k] ?? 0) + o.total;
+            return acc;
+          }, {})
+        ).map(([date, sales]) => ({ date, sales }))
+      : [];
+
+    return {
+      sessionsCur, sessionsPrev, sessionsSpark,
+      ordersCur: ordersCur.length, ordersPrev: ordersPrev.length,
+      salesCur, salesPrev, salesSpark,
+      conversionCur, conversionPrev,
+      chartData,
+    };
+  }, [events, orders, bounds]);
 
   return (
     <div>
@@ -41,17 +104,63 @@ export default function AdminDashboardPage() {
           </h1>
           <p className="text-gray-400 text-sm mt-1">Here is what is happening in your store today.</p>
         </div>
-        <select
-          value={range}
-          onChange={(e) => setRange(e.target.value)}
-          className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]/30 focus:border-[#C9A96E] bg-white"
-        >
-          {DATE_RANGES.map((r) => <option key={r}>{r}</option>)}
-        </select>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+            </span>
+            <span className="text-sm text-gray-600">
+              {liveVisitors === undefined ? "—" : liveVisitors} live now
+            </span>
+          </div>
+          <select
+            value={range}
+            onChange={(e) => setRange(e.target.value as RangeKey)}
+            className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]/30 focus:border-[#C9A96E] bg-white"
+          >
+            {RANGE_KEYS.map((r) => <option key={r}>{r}</option>)}
+          </select>
+        </div>
       </div>
 
       {/* Metric cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <MetricCard
+          label="Sessions"
+          value={events === undefined ? "—" : String(stats.sessionsCur)}
+          change={events === undefined ? undefined : pctChange(stats.sessionsCur, stats.sessionsPrev)}
+          icon={<Users className="w-5 h-5" />}
+          color="#3b82f6"
+          sparkData={stats.sessionsSpark}
+        />
+        <MetricCard
+          label="Total Sales"
+          value={orders === null ? "—" : `KES ${stats.salesCur.toLocaleString()}`}
+          change={orders === null ? undefined : pctChange(stats.salesCur, stats.salesPrev)}
+          icon={<TrendingUp className="w-5 h-5" />}
+          color="#C9A96E"
+          sparkData={stats.salesSpark}
+        />
+        <MetricCard
+          label="Orders"
+          value={orders === null ? "—" : String(stats.ordersCur)}
+          change={orders === null ? undefined : pctChange(stats.ordersCur, stats.ordersPrev)}
+          icon={<ShoppingCart className="w-5 h-5" />}
+          color="#8b5cf6"
+          sparkData={[]}
+        />
+        <MetricCard
+          label="Conversion Rate"
+          value={orders === null || events === undefined ? "—" : `${stats.conversionCur.toFixed(1)}%`}
+          change={orders === null || events === undefined ? undefined : pctChange(stats.conversionCur, stats.conversionPrev)}
+          icon={<Percent className="w-5 h-5" />}
+          color="#f59e0b"
+          sparkData={[]}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <MetricCard
           label="Total Products"
           value={loading ? "—" : String(totalProducts)}
@@ -76,14 +185,6 @@ export default function AdminDashboardPage() {
           color={lowStock > 0 ? "#ef4444" : "#6b7280"}
           sparkData={[0, 0, 0, 0, 0, 0, lowStock]}
         />
-        <MetricCard
-          label="Orders"
-          value="—"
-          sub="No data yet"
-          icon={<Package className="w-5 h-5" />}
-          color="#8b5cf6"
-          sparkData={[0, 0, 0, 0, 0, 0, 0]}
-        />
       </div>
 
       {/* Sales chart */}
@@ -91,11 +192,11 @@ export default function AdminDashboardPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Revenue</p>
-            <p className="text-3xl font-bold text-gray-800 mt-0.5">KES 0</p>
+            <p className="text-3xl font-bold text-gray-800 mt-0.5">KES {stats.salesCur.toLocaleString()}</p>
           </div>
           <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">{range}</span>
         </div>
-        <SalesChart data={[]} />
+        <SalesChart data={stats.chartData} />
       </div>
 
       {/* Recent products */}

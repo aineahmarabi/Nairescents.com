@@ -5,6 +5,7 @@ import {
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useTrackEvent } from "@/lib/analytics";
 
 export interface CartItem {
   productId: string;
@@ -80,6 +81,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const convexCart = userId ? userCart : sessionCart;
   const setCart = useMutation(api.carts.setCart);
   const mergeGuest = useMutation(api.carts.mergeGuestCart);
+  const track = useTrackEvent();
 
   // Hydrate local items once on mount
   useEffect(() => {
@@ -117,7 +119,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (idx >= 0) next[idx] = { ...next[idx], quantity: next[idx].quantity + qty };
     else next.push({ ...item, quantity: qty });
     persist(next);
-  }, [items, userId]);
+    track("add_to_cart", { productId: item.productId, productTitle: item.title, value: item.price * qty });
+  }, [items, userId, track]);
 
   const removeItem = useCallback((productId: string, variantId?: string) => {
     persist(items.filter((c) => !(c.productId === productId && c.variantId === variantId)));

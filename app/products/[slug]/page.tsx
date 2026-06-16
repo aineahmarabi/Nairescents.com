@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -12,6 +12,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/ui/ProductCard";
 import { useCart } from "@/components/layout/CartContext";
+import { useTrackEvent } from "@/lib/analytics";
 import type { Product } from "@/lib/types";
 
 function toProductCard(p: any): Product {
@@ -52,6 +53,7 @@ export default function ProductDetailPage({ params }: Props) {
   const { slug } = params;
   const router = useRouter();
   const { addItem, triggerFly } = useCart();
+  const track = useTrackEvent();
   const imgRef = useRef<HTMLDivElement>(null);
   const [qty, setQty] = useState(1);
 
@@ -59,6 +61,11 @@ export default function ProductDetailPage({ params }: Props) {
   const allRaw = useQuery(api.products.list, { status: "Active" });
 
   const product = rawProduct ? toProductCard(rawProduct) : null;
+
+  useEffect(() => {
+    if (product) track("product_view", { productId: product.id, productTitle: product.title, value: product.price });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
 
   const related = useMemo(() => {
     if (!allRaw || !product) return [];

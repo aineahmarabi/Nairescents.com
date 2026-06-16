@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import CartDrawer from "@/components/layout/CartDrawer";
 import CartFlyOverlay from "@/components/layout/CartFlyOverlay";
+import PageviewTracker from "@/components/layout/PageviewTracker";
 import { CartProvider } from "@/components/layout/CartContext";
 
 const jost = Jost({
@@ -29,6 +30,7 @@ export default function RootLayout({
         <body className="font-jost bg-[#0B3D33] text-white antialiased">
           <ConvexClientProvider>
             <CartProvider>
+              <PageviewTracker />
               {children}
               <CartDrawer />
               <CartFlyOverlay />

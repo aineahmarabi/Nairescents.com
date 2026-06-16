@@ -1,10 +1,12 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ShoppingBag, Lock, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/components/layout/CartContext";
+import { useTrackEvent } from "@/lib/analytics";
+import { createOrder } from "@/lib/admin-api";
 import { SHIPPING_ZONES, FREE_SHIPPING_THRESHOLD } from "@/lib/shipping";
 
 /* ── shared classes ── */
@@ -40,6 +42,7 @@ interface FormState {
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart, openCart, itemCount } = useCart();
+  const track = useTrackEvent();
 
   const [form, setForm] = useState<FormState>({
     email: "",
@@ -63,6 +66,11 @@ export default function CheckoutPage() {
     setForm((p) => ({ ...p, [key]: val }));
   }
 
+  useEffect(() => {
+    if (items.length > 0) track("checkout_started", { value: subtotal });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const selectedZone = useMemo(
     () => SHIPPING_ZONES.find((z) => z.id === form.shippingZoneId) ?? SHIPPING_ZONES[0],
     [form.shippingZoneId]
@@ -75,9 +83,18 @@ export default function CheckoutPage() {
     if (!form.email) { setEmailError(true); return; }
     if (items.length === 0) return;
     setPlacing(true);
+    createOrder({
+      customer: { name: `${form.firstName} ${form.lastName}`.trim(), email: form.email, phone: "" },
+      items: items.map((i) => ({ productId: i.productId, title: i.title, quantity: i.quantity, price: i.price })),
+      shippingAddress: [form.address, form.apartment, form.city, form.postalCode].filter(Boolean).join(", "),
+      total,
+      paymentStatus: "Pending",
+      fulfillmentStatus: "Unfulfilled",
+    }).catch(() => {});
     await new Promise((r) => setTimeout(r, 1200));
     setPlacing(false);
     setOrderPlaced(true);
+    track("order_placed", { value: total });
     clearCart();
   }
 

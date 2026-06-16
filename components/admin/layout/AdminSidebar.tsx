@@ -3,14 +3,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Tag, Megaphone,
-  BarChart2, Settings, Globe, LogOut, ChevronRight, X, Layers,
+  BarChart2, Settings, Globe, LogOut, ChevronRight, X, Layers, MessageSquare,
 } from "lucide-react";
 
 const NAV = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Orders", href: "/admin/dashboard/orders", icon: ShoppingCart },
+  { label: "Messages", href: "/admin/dashboard/messages", icon: MessageSquare },
   { label: "Products", href: "/admin/dashboard/products", icon: Package },
   { label: "Customers", href: "/admin/dashboard/customers", icon: Users },
 ];
@@ -24,7 +27,7 @@ const BOTTOM_NAV = [
   { label: "Settings", href: "/admin/dashboard/settings", icon: Settings },
 ];
 
-function NavItem({ href, icon: Icon, label, onClick }: { href: string; icon: React.ElementType; label: string; onClick?: () => void }) {
+function NavItem({ href, icon: Icon, label, onClick, badge }: { href: string; icon: React.ElementType; label: string; onClick?: () => void; badge?: number }) {
   const pathname = usePathname();
   const active = pathname === href || (href !== "/admin/dashboard" && pathname.startsWith(href));
   return (
@@ -34,7 +37,12 @@ function NavItem({ href, icon: Icon, label, onClick }: { href: string; icon: Rea
       }`}>
       <Icon className={`w-4 h-4 shrink-0 ${active ? "text-[#C9A96E]" : "text-white/40 group-hover:text-white/70"}`} />
       <span>{label}</span>
-      {active && <ChevronRight className="w-3 h-3 ml-auto text-[#C9A96E]/60" />}
+      {!!badge && (
+        <span className="ml-auto bg-[#C9A96E] text-[#0B3D33] text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
+          {badge}
+        </span>
+      )}
+      {active && !badge && <ChevronRight className="w-3 h-3 ml-auto text-[#C9A96E]/60" />}
     </Link>
   );
 }
@@ -43,6 +51,7 @@ interface Props { isMobileOpen: boolean; onClose: () => void; }
 
 export default function AdminSidebar({ isMobileOpen, onClose }: Props) {
   const { signOut } = useClerk();
+  const unreadMessages = useQuery(api.messages.unreadCount);
 
   function handleLogout() {
     signOut({ redirectUrl: "/admin/login" });
@@ -63,7 +72,7 @@ export default function AdminSidebar({ isMobileOpen, onClose }: Props) {
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV.map(n => <NavItem key={n.href} {...n} onClick={onClose} />)}
+        {NAV.map(n => <NavItem key={n.href} {...n} onClick={onClose} badge={n.label === "Messages" ? unreadMessages : undefined} />)}
 
         <div className="pt-4 pb-1">
           <p className="px-3 text-[10px] text-white/20 tracking-wider uppercase font-semibold mb-1">Marketing</p>

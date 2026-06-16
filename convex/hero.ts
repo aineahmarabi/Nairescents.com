@@ -15,6 +15,17 @@ export const getBySlot = query({
       .first(),
 });
 
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => ctx.storage.generateUploadUrl(),
+});
+
+export const getStorageUrl = query({
+  args: { storageId: v.string() },
+  handler: async (ctx, { storageId }) =>
+    ctx.storage.getUrl(storageId as never),
+});
+
 export const upsert = mutation({
   args: {
     slot: v.string(),

@@ -1,28 +1,46 @@
 "use client";
-import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useRef, useState } from "react";
+import { useQuery, useMutation, useConvex } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Trash2, Save, ImagePlus } from "lucide-react";
-
-const INPUT = "w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A96E]/30 focus:border-[#C9A96E] transition-colors bg-white text-gray-800 placeholder-gray-300";
+import { Trash2, Save, Upload, Loader2 } from "lucide-react";
 
 export default function ContentPage() {
   const featured = useQuery(api.hero.getBySlot, { slot: "featured" });
   const upsert = useMutation(api.hero.upsert);
+  const generateUploadUrl = useMutation(api.hero.generateUploadUrl);
+  const convex = useConvex();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [localImages, setLocalImages] = useState<string[] | null>(null);
-  const [newUrl, setNewUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const baseImages = featured?.rotationImages ?? [];
   const images = localImages ?? baseImages;
 
-  function addImage() {
-    const url = newUrl.trim();
-    if (!url) return;
-    setLocalImages([...images, url]);
-    setNewUrl("");
+  async function uploadFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const next = [...images];
+    for (const file of Array.from(files)) {
+      if (!/^image\/(jpeg|jpg|png|webp)$/.test(file.type)) continue;
+      try {
+        const uploadUrl = await generateUploadUrl();
+        const res = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+        const { storageId } = await res.json();
+        const url = await convex.query(api.hero.getStorageUrl, { storageId });
+        if (url) next.push(url);
+      } catch (e) {
+        console.error("Upload failed", e);
+      }
+    }
+    setLocalImages(next);
+    setUploading(false);
   }
 
   function removeImage(i: number) {
@@ -68,14 +86,25 @@ export default function ContentPage() {
           </div>
         )}
 
-        <div className="flex gap-2 mb-4">
-          <input value={newUrl} onChange={(e) => setNewUrl(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addImage(); } }}
-            placeholder="Paste image URL…" className={INPUT + " flex-1"} />
-          <button type="button" onClick={addImage}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700 transition-colors whitespace-nowrap">
-            <ImagePlus className="w-4 h-4" /> Add
-          </button>
+        <div
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => { e.preventDefault(); uploadFiles(e.dataTransfer.files); }}
+          className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-[#C9A96E]/50 hover:bg-[#C9A96E]/5 transition-colors mb-5"
+        >
+          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={(e) => uploadFiles(e.target.files)} />
+          {uploading ? (
+            <div className="flex items-center justify-center gap-2 text-gray-400">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="text-sm">Uploading…</span>
+            </div>
+          ) : (
+            <>
+              <Upload className="w-6 h-6 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm font-medium text-gray-500">Drop media to upload</p>
+              <p className="text-xs text-gray-300 mt-1">or click to select files — JPG, PNG, WEBP</p>
+            </>
+          )}
         </div>
 
         <p className="text-xs text-gray-400 mb-5">

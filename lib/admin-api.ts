@@ -23,6 +23,9 @@ export const deleteProduct = (id: string) =>
 
 export const getOrders = () => req<import("./types").Order[]>("/orders");
 export const getOrder = (id: string) => req<import("./types").Order>(`/orders/${id}`);
+export const createOrder = (
+  data: Pick<import("./types").Order, "customer" | "items" | "shippingAddress" | "total" | "paymentStatus" | "fulfillmentStatus">
+) => req<import("./types").Order>("/orders", { method: "POST", body: JSON.stringify(data) });
 export const updateOrder = (id: string, data: Partial<import("./types").Order>) =>
   req<import("./types").Order>(`/orders/${id}`, { method: "PUT", body: JSON.stringify(data) });
 
