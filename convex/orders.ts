@@ -40,17 +40,27 @@ export const create = mutation({
     shippingAddress: v.optional(v.string()),
     subtotal: v.number(),
     total: v.number(),
-    paymentMethod: v.optional(v.union(v.literal("Cash on Delivery"), v.literal("Paystack"))),
+    paymentMethod: v.optional(
+      v.union(v.literal("Cash on Delivery"), v.literal("Paystack"), v.literal("Manual"))
+    ),
     paystackReference: v.optional(v.string()),
+    paymentStatus: v.optional(
+      v.union(v.literal("Pending"), v.literal("Paid"), v.literal("Failed"), v.literal("Refunded"))
+    ),
+    fulfillmentStatus: v.optional(
+      v.union(v.literal("Unfulfilled"), v.literal("Fulfilled"), v.literal("Cancelled"))
+    ),
+    notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const { paymentStatus, fulfillmentStatus, ...rest } = args;
     const count = (await ctx.db.query("orders").collect()).length;
     const orderNumber = `#${1000 + count + 1}`;
     return ctx.db.insert("orders", {
-      ...args,
+      ...rest,
       orderNumber,
-      paymentStatus: "Pending",
-      fulfillmentStatus: "Unfulfilled",
+      paymentStatus: paymentStatus ?? "Pending",
+      fulfillmentStatus: fulfillmentStatus ?? "Unfulfilled",
     });
   },
 });

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Search, ShoppingCart } from "lucide-react";
+import { Search, ShoppingCart, Plus } from "lucide-react";
 import Link from "next/link";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -38,7 +38,15 @@ export default function AdminOrdersPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Orders</h1>
-        <div className="text-sm text-gray-400">{list.length} total</div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-400">{list.length} total</span>
+          <Link
+            href="/admin/dashboard/orders/new"
+            className="inline-flex items-center gap-1.5 bg-[#0B3D33] text-white text-sm font-semibold px-4 py-2 rounded-xl hover:opacity-90 active:scale-[0.98] transition-all"
+          >
+            <Plus className="w-4 h-4" /> Add order
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
