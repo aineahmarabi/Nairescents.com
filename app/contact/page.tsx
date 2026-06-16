@@ -9,7 +9,6 @@ import Footer from "@/components/layout/Footer";
 import BackButton from "@/components/ui/BackButton";
 
 const ease = [0.16, 1, 0.3, 1] as const;
-const WHATSAPP_NUMBER = "254758333996";
 
 const INPUT =
   "w-full bg-transparent border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors";
@@ -43,8 +42,6 @@ export default function ContactPage() {
         comment: form.comment,
       });
       setSent(true);
-      const text = `New contact form message\nName: ${form.name}\nEmail: ${form.email}${form.phone ? `\nPhone: ${form.phone}` : ""}\n\n${form.comment}`;
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, "_blank");
       setForm({ name: "", email: "", phone: "", comment: "" });
     } catch (err) {
       console.error("Failed to send message", err);
@@ -155,7 +152,7 @@ export default function ContactPage() {
                     className="px-12 py-3.5 border border-[#C9A96E] text-[#C9A96E] rounded-xl text-sm font-semibold tracking-widest uppercase
                       hover:bg-[#C9A96E]/10 active:scale-[0.98] transition-all disabled:opacity-50"
                   >
-                    {sending ? "Sending…" : "Send via WhatsApp"}
+                    {sending ? "Sending…" : "Send message"}
                   </button>
                 </div>
               </motion.form>

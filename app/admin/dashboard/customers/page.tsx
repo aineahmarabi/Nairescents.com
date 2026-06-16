@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getCustomers } from "@/lib/admin-api";
 import type { Customer } from "@/lib/types";
 import { Search, Users } from "lucide-react";
+import { SkeletonTable } from "@/components/admin/ui/Skeleton";
 
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -34,7 +35,7 @@ export default function AdminCustomersPage() {
           </div>
         </div>
         {loading ? (
-          <div className="py-16 flex items-center justify-center"><div className="w-5 h-5 rounded-full border-2 border-[#C9A96E] border-t-transparent animate-spin" /></div>
+          <SkeletonTable rows={6} cols={4} />
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <Users className="w-10 h-10 text-gray-200 mx-auto mb-3" />

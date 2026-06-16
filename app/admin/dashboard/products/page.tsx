@@ -8,6 +8,7 @@ import Link from "next/link";
 import {
   Plus, Search, Package, Trash2, Pencil, Upload, Download, Filter,
 } from "lucide-react";
+import { SkeletonTable } from "@/components/admin/ui/Skeleton";
 
 export default function AdminProductsPage() {
   const products = useQuery(api.products.list, {});
@@ -68,12 +69,12 @@ export default function AdminProductsPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
         <div>
           <h1 className="text-xl font-bold text-gray-800">Products</h1>
           <p className="text-gray-400 text-sm mt-0.5">{total} total · {active} active · {draft} draft</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button onClick={handleExport}
             className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors">
             <Download className="w-3.5 h-3.5" /> Export
@@ -105,8 +106,8 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Filters + search */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex items-center gap-3 flex-wrap mb-4">
+        <div className="relative flex-1 min-w-[180px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products…"
             className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A96E]/30 focus:border-[#C9A96E] bg-white" />
@@ -126,11 +127,9 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         {products === undefined ? (
-          <div className="py-16 text-center">
-            <div className="w-6 h-6 border-2 border-[#C9A96E] border-t-transparent rounded-full animate-spin mx-auto" />
-          </div>
+          <SkeletonTable rows={6} cols={6} />
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <Package className="w-10 h-10 text-gray-200 mx-auto mb-3" />
@@ -149,8 +148,16 @@ export default function AdminProductsPage() {
                   <input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0}
                     onChange={toggleAll} className="rounded accent-[#C9A96E]" />
                 </th>
-                {["Product", "Status", "Inventory", "Category", "Vendor", "Price", ""].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500">{h}</th>
+                {[
+                  { label: "Product", cls: "" },
+                  { label: "Status", cls: "" },
+                  { label: "Inventory", cls: "hidden sm:table-cell" },
+                  { label: "Category", cls: "hidden md:table-cell" },
+                  { label: "Vendor", cls: "hidden lg:table-cell" },
+                  { label: "Price", cls: "" },
+                  { label: "", cls: "" },
+                ].map((h) => (
+                  <th key={h.label} className={`text-left px-4 py-3 text-xs font-semibold text-gray-500 ${h.cls}`}>{h.label}</th>
                 ))}
               </tr>
             </thead>
@@ -181,13 +188,13 @@ export default function AdminProductsPage() {
                       {p.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden sm:table-cell">
                     <span className={`text-sm font-medium ${p.inventory === 0 ? "text-red-500" : "text-gray-700"}`}>
                       {p.trackInventory ? `${p.inventory} in stock` : "Not tracked"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{p.category ?? p.gender ?? "—"}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs truncate max-w-[120px]">{p.vendor || "—"}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">{p.category ?? p.gender ?? "—"}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs truncate max-w-[120px] hidden lg:table-cell">{p.vendor || "—"}</td>
                   <td className="px-4 py-3 font-medium text-gray-800">
                     KES {p.price.toLocaleString()}
                     {p.compareAtPrice && <span className="line-through text-gray-300 text-xs ml-1">{p.compareAtPrice.toLocaleString()}</span>}

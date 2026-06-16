@@ -32,6 +32,13 @@ a {
   text-decoration: none;
 }
 
+/* Admin dashboard inputs inherit white body text — force readable dark text */
+.admin-root input,
+.admin-root select,
+.admin-root textarea {
+  color: #1f2937;
+}
+
 /* scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

@@ -122,6 +122,7 @@ export default function AdminDashboardPage() {
           icon={<Users className="w-5 h-5" />}
           color="#3b82f6"
           sparkData={stats.sessionsSpark}
+          loading={events === undefined}
         />
         <MetricCard
           label="Total Sales"
@@ -130,6 +131,7 @@ export default function AdminDashboardPage() {
           icon={<TrendingUp className="w-5 h-5" />}
           color="#C9A96E"
           sparkData={stats.salesSpark}
+          loading={orders === undefined}
         />
         <MetricCard
           label="Orders"
@@ -138,6 +140,7 @@ export default function AdminDashboardPage() {
           icon={<ShoppingCart className="w-5 h-5" />}
           color="#8b5cf6"
           sparkData={[]}
+          loading={orders === undefined}
         />
         <MetricCard
           label="Conversion Rate"
@@ -146,6 +149,7 @@ export default function AdminDashboardPage() {
           icon={<Percent className="w-5 h-5" />}
           color="#f59e0b"
           sparkData={[]}
+          loading={orders === undefined || events === undefined}
         />
       </div>
 
@@ -157,6 +161,7 @@ export default function AdminDashboardPage() {
           icon={<Package className="w-5 h-5" />}
           color="#C9A96E"
           sparkData={[0, 0, 0, 0, 0, 0, totalProducts]}
+          loading={loading}
         />
         <MetricCard
           label="Active Listings"
@@ -165,6 +170,7 @@ export default function AdminDashboardPage() {
           icon={<CheckCircle className="w-5 h-5" />}
           color="#22c55e"
           sparkData={[0, 0, 0, 0, 0, 0, activeProducts]}
+          loading={loading}
         />
         <MetricCard
           label="Out of Stock"
@@ -173,6 +179,7 @@ export default function AdminDashboardPage() {
           icon={<Clock className="w-5 h-5" />}
           color={lowStock > 0 ? "#ef4444" : "#6b7280"}
           sparkData={[0, 0, 0, 0, 0, 0, lowStock]}
+          loading={loading}
         />
       </div>
 

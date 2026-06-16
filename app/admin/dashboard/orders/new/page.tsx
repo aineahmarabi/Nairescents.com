@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ArrowLeft, Search, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import { Skeleton } from "@/components/admin/ui/Skeleton";
 
 type CartLine = {
   productId: string;
@@ -120,8 +121,14 @@ export default function NewOrderPage() {
           </div>
 
           {products === undefined ? (
-            <div className="py-16 flex items-center justify-center">
-              <div className="w-5 h-5 rounded-full border-2 border-[#C9A96E] border-t-transparent animate-spin" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div key={i} className="rounded-xl border border-gray-100 p-3">
+                  <Skeleton className="aspect-square mb-2" />
+                  <Skeleton className="h-3 w-3/4 mb-1.5" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              ))}
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-16 text-center text-gray-400 text-sm">No products found.</div>

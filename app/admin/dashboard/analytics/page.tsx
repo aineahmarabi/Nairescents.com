@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import { RANGE_KEYS, RangeKey, getRangeBounds, bucketWindows } from "@/lib/dateRanges";
 import { TrendingUp, Users, ShoppingCart, Package, BarChart2 } from "lucide-react";
+import { Skeleton } from "@/components/admin/ui/Skeleton";
 
 const COLORS = ["#C9A96E", "#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444"];
 
@@ -149,16 +150,28 @@ export default function AdminAnalyticsPage() {
           { label: "Sessions", value: String(data.sessionsCount), icon: Users },
         ].map((m) => (
           <div key={m.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <m.icon className="w-5 h-5 text-[#C9A96E]/60 mb-3" />
-            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">{m.label}</p>
-            <p className="text-xl font-bold text-gray-900">{loading ? "—" : m.value}</p>
+            {loading ? (
+              <>
+                <Skeleton className="h-5 w-5 mb-3" />
+                <Skeleton className="h-3 w-20 mb-2" />
+                <Skeleton className="h-6 w-24" />
+              </>
+            ) : (
+              <>
+                <m.icon className="w-5 h-5 text-[#C9A96E]/60 mb-3" />
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">{m.label}</p>
+                <p className="text-xl font-bold text-gray-900">{m.value}</p>
+              </>
+            )}
           </div>
         ))}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5">
         <Card title="Sales over time">
-          {data.salesSeries.every((d) => d.sales === 0) ? (
+          {loading ? (
+            <Skeleton className="h-[240px]" />
+          ) : data.salesSeries.every((d) => d.sales === 0) ? (
             <EmptyState text="No sales yet for this period." />
           ) : (
             <ResponsiveContainer width="100%" height={240}>
@@ -180,7 +193,9 @@ export default function AdminAnalyticsPage() {
         </Card>
 
         <Card title="Sessions / visitors over time">
-          {data.sessionsSeries.every((d) => d.sessions === 0) ? (
+          {loading ? (
+            <Skeleton className="h-[240px]" />
+          ) : data.sessionsSeries.every((d) => d.sessions === 0) ? (
             <EmptyState text="No visitor activity yet for this period." />
           ) : (
             <ResponsiveContainer width="100%" height={240}>

@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { Skeleton } from "@/components/admin/ui/Skeleton";
 
 const PAYMENT_STATUSES = ["Pending", "Paid", "Failed", "Refunded"] as const;
 const FULFILLMENT_STATUSES = ["Unfulfilled", "Fulfilled", "Cancelled"] as const;
@@ -34,7 +35,33 @@ export default function OrderDetailPage() {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  if (order === undefined) return <div className="flex items-center justify-center py-20"><div className="w-5 h-5 rounded-full border-2 border-[#C9A96E] border-t-transparent animate-spin" /></div>;
+  if (order === undefined) return (
+    <div className="space-y-5 max-w-4xl">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-8" />
+        <Skeleton className="h-6 w-24" />
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
+            <Skeleton className="h-4 w-16 mb-2" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-2">
+            <Skeleton className="h-4 w-24 mb-2" />
+            <Skeleton className="h-3 w-40" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-24 rounded-2xl" />
+        </div>
+      </div>
+    </div>
+  );
   if (!order) return <div className="text-center py-20"><p className="text-gray-500">Order not found.</p><Link href="/admin/dashboard/orders" className="text-[#C9A96E] text-sm hover:underline mt-2 inline-block">← Back</Link></div>;
 
   return (

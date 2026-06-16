@@ -4,6 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Search, ShoppingCart, Plus } from "lucide-react";
 import Link from "next/link";
+import { SkeletonTable } from "@/components/admin/ui/Skeleton";
 
 const STATUS_COLORS: Record<string, string> = {
   Paid: "bg-emerald-100 text-emerald-700",
@@ -49,7 +50,7 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         <div className="flex flex-col sm:flex-row gap-3 p-4 border-b border-gray-100">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -67,9 +68,7 @@ export default function AdminOrdersPage() {
         </div>
 
         {loading ? (
-          <div className="py-16 flex items-center justify-center">
-            <div className="w-5 h-5 rounded-full border-2 border-[#C9A96E] border-t-transparent animate-spin" />
-          </div>
+          <SkeletonTable rows={6} cols={5} />
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <ShoppingCart className="w-10 h-10 text-gray-200 mx-auto mb-3" />
