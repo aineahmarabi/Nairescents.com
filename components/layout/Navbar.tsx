@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Search, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
 import { useCart } from "./CartContext";
 import { motion, AnimatePresence } from "framer-motion";
+import SearchOverlay from "./SearchOverlay";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -30,6 +31,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [brandsOpen, setBrandsOpen] = useState(false);
   const [mobileBrandsOpen, setMobileBrandsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <nav className="sticky top-0 z-50 bg-[#0B3D33] border-b border-white/10">
@@ -93,7 +95,11 @@ export default function Navbar() {
 
           {/* Right icons */}
           <div className="flex items-center gap-3">
-            <button className="text-white hover:text-[#C9A96E] transition-colors p-1">
+            <button
+              onClick={() => setSearchOpen(true)}
+              aria-label="Search products"
+              className="text-white hover:text-[#C9A96E] transition-colors p-1"
+            >
               <Search className="w-5 h-5" />
             </button>
 
@@ -182,6 +188,8 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </nav>
   );
 }
