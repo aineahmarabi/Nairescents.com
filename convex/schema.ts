@@ -115,7 +115,14 @@ export default defineSchema({
     shippingAddress: v.optional(v.string()),
     subtotal: v.number(),
     total: v.number(),
-    paymentStatus: v.union(v.literal("Pending"), v.literal("Paid"), v.literal("Refunded")),
+    paymentMethod: v.optional(v.union(v.literal("Cash on Delivery"), v.literal("Paystack"))),
+    paymentStatus: v.union(
+      v.literal("Pending"),
+      v.literal("Paid"),
+      v.literal("Failed"),
+      v.literal("Refunded")
+    ),
+    paystackReference: v.optional(v.string()),
     fulfillmentStatus: v.union(
       v.literal("Unfulfilled"),
       v.literal("Fulfilled"),
@@ -124,7 +131,8 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
-    .index("by_order_number", ["orderNumber"]),
+    .index("by_order_number", ["orderNumber"])
+    .index("by_paystack_reference", ["paystackReference"]),
 
   carts: defineTable({
     userId: v.optional(v.string()),

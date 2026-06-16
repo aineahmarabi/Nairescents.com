@@ -1,13 +1,11 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
   ResponsiveContainer, AreaChart, Area, LineChart, Line, BarChart, Bar,
   PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from "recharts";
-import { getOrders } from "@/lib/admin-api";
-import type { Order } from "@/lib/types";
 import { RANGE_KEYS, RangeKey, getRangeBounds, bucketWindows } from "@/lib/dateRanges";
 import { TrendingUp, Users, ShoppingCart, Package, BarChart2 } from "lucide-react";
 
@@ -36,19 +34,15 @@ function Card({ title, children, action }: { title: string; children: React.Reac
 
 export default function AdminAnalyticsPage() {
   const [range, setRange] = useState<RangeKey>("Last 7 days");
-  const [orders, setOrders] = useState<Order[] | null>(null);
+  const orders = useQuery(api.orders.list);
 
   const bounds = useMemo(() => getRangeBounds(range), [range]);
   const events = useQuery(api.analytics.eventsSince, { since: bounds.start });
 
-  useEffect(() => {
-    getOrders().then(setOrders).catch(() => setOrders([]));
-  }, []);
-
   const data = useMemo(() => {
     const evts = (events ?? []).filter((e) => e._creationTime >= bounds.start && e._creationTime < bounds.end);
     const ordersList = (orders ?? []).filter((o) => {
-      const t = new Date(o.createdAt).getTime();
+      const t = o._creationTime;
       return t >= bounds.start && t < bounds.end;
     });
 
@@ -57,7 +51,7 @@ export default function AdminAnalyticsPage() {
     const salesSeries = windows.map((w) => ({
       label: w.label,
       sales: ordersList
-        .filter((o) => { const t = new Date(o.createdAt).getTime(); return t >= w.start && t < w.end; })
+        .filter((o) => { const t = o._creationTime; return t >= w.start && t < w.end; })
         .reduce((s, o) => s + o.total, 0),
     }));
     const sessionsSeries = windows.map((w) => ({
@@ -132,7 +126,7 @@ export default function AdminAnalyticsPage() {
     return { salesSeries, sessionsSeries, topProducts, traffic, funnel, devices, referrers, totalRevenue, avgOrder, ordersCount: ordersList.length, sessionsCount: allSessions.size };
   }, [events, orders, bounds]);
 
-  const loading = events === undefined || orders === null;
+  const loading = events === undefined || orders === undefined;
 
   return (
     <div className="space-y-5">

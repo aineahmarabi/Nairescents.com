@@ -1,16 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
-import { getOrder, updateOrder } from "@/lib/admin-api";
-import type { Order } from "@/lib/types";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-const PAYMENT_STATUSES = ["Pending", "Paid", "Refunded"] as const;
+const PAYMENT_STATUSES = ["Pending", "Paid", "Failed", "Refunded"] as const;
 const FULFILLMENT_STATUSES = ["Unfulfilled", "Fulfilled", "Cancelled"] as const;
 const STATUS_COLORS: Record<string, string> = {
   Paid: "bg-emerald-100 text-emerald-700",
   Pending: "bg-amber-100 text-amber-700",
+  Failed: "bg-red-100 text-red-700",
   Refunded: "bg-red-100 text-red-700",
   Fulfilled: "bg-blue-100 text-blue-700",
   Unfulfilled: "bg-gray-100 text-gray-600",
@@ -19,25 +21,20 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+  const order = useQuery(api.orders.get, { id: id as Id<"orders"> });
+  const updateStatus = useMutation(api.orders.updateStatus);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    getOrder(id).then(setOrder).catch(() => {}).finally(() => setLoading(false));
-  }, [id]);
 
   async function saveStatus(field: "paymentStatus" | "fulfillmentStatus", val: string) {
     if (!order) return;
     setSaving(true);
-    setOrder({ ...order, [field]: val });
-    await updateOrder(id, { [field]: val }).catch(() => {});
+    await updateStatus({ id: order._id, [field]: val } as never).catch(() => {});
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
 
-  if (loading) return <div className="flex items-center justify-center py-20"><div className="w-5 h-5 rounded-full border-2 border-[#C9A96E] border-t-transparent animate-spin" /></div>;
+  if (order === undefined) return <div className="flex items-center justify-center py-20"><div className="w-5 h-5 rounded-full border-2 border-[#C9A96E] border-t-transparent animate-spin" /></div>;
   if (!order) return <div className="text-center py-20"><p className="text-gray-500">Order not found.</p><Link href="/admin/dashboard/orders" className="text-[#C9A96E] text-sm hover:underline mt-2 inline-block">← Back</Link></div>;
 
   return (
@@ -49,6 +46,7 @@ export default function OrderDetailPage() {
         <h1 className="text-xl font-bold text-gray-900">{order.orderNumber}</h1>
         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[order.paymentStatus]}`}>{order.paymentStatus}</span>
         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[order.fulfillmentStatus]}`}>{order.fulfillmentStatus}</span>
+        {order.paymentMethod && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">{order.paymentMethod}</span>}
         {saved && <span className="text-xs text-emerald-600 font-medium ml-auto">Saved!</span>}
       </div>
 
@@ -99,8 +97,8 @@ export default function OrderDetailPage() {
             </select>
           </div>
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-xs text-gray-400 space-y-1">
-            <p>Created: {new Date(order.createdAt).toLocaleString("en-GB")}</p>
-            <p>Updated: {new Date(order.updatedAt).toLocaleString("en-GB")}</p>
+            <p>Created: {new Date(order._creationTime).toLocaleString("en-GB")}</p>
+            {order.paystackReference && <p>Reference: {order.paystackReference}</p>}
           </div>
         </div>
       </div>

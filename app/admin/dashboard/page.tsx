@@ -1,13 +1,11 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import MetricCard from "@/components/admin/ui/MetricCard";
 import SalesChart from "@/components/admin/charts/SalesChart";
-import { getOrders } from "@/lib/admin-api";
 import { RANGE_KEYS, RangeKey, getRangeBounds, pctChange, bucketCounts, dayLabel } from "@/lib/dateRanges";
-import type { Order } from "@/lib/types";
 import { Package, CheckCircle, Clock, Users, ShoppingCart, TrendingUp, Percent } from "lucide-react";
 
 function greeting() {
@@ -22,20 +20,11 @@ export default function AdminDashboardPage() {
   const products = useQuery(api.products.list, {});
   const settings = useQuery(api.settings.getAll);
   const [range, setRange] = useState<RangeKey>("Last 7 days");
-  const [orders, setOrders] = useState<Order[] | null>(null);
+  const orders = useQuery(api.orders.list);
 
   const bounds = useMemo(() => getRangeBounds(range), [range]);
   const events = useQuery(api.analytics.eventsSince, { since: bounds.prevStart });
   const liveVisitors = useQuery(api.analytics.liveVisitors);
-
-  useEffect(() => {
-    function load() {
-      getOrders().then(setOrders).catch(() => setOrders([]));
-    }
-    load();
-    const t = setInterval(load, 30000);
-    return () => clearInterval(t);
-  }, []);
 
   const storeName = settings?.storeName ?? "Naire Scents";
   const adminName = user?.firstName ?? user?.fullName ?? storeName;
@@ -57,17 +46,17 @@ export default function AdminDashboardPage() {
 
     const ordersList = orders ?? [];
     const ordersCur = ordersList.filter((o) => {
-      const t = new Date(o.createdAt).getTime();
+      const t = o._creationTime;
       return t >= bounds.start && t < bounds.end;
     });
     const ordersPrev = ordersList.filter((o) => {
-      const t = new Date(o.createdAt).getTime();
+      const t = o._creationTime;
       return t >= bounds.prevStart && t < bounds.prevEnd;
     });
     const salesCur = ordersCur.reduce((s, o) => s + o.total, 0);
     const salesPrev = ordersPrev.reduce((s, o) => s + o.total, 0);
     const salesSpark = bucketCounts(
-      ordersCur.map((o) => new Date(o.createdAt).getTime()),
+      ordersCur.map((o) => o._creationTime),
       bounds.start,
       bounds.end
     );
@@ -78,7 +67,7 @@ export default function AdminDashboardPage() {
     const chartData = ordersCur.length
       ? Object.entries(
           ordersCur.reduce<Record<string, number>>((acc, o) => {
-            const k = dayLabel(new Date(o.createdAt).getTime());
+            const k = dayLabel(o._creationTime);
             acc[k] = (acc[k] ?? 0) + o.total;
             return acc;
           }, {})
@@ -136,24 +125,24 @@ export default function AdminDashboardPage() {
         />
         <MetricCard
           label="Total Sales"
-          value={orders === null ? "—" : `KES ${stats.salesCur.toLocaleString()}`}
-          change={orders === null ? undefined : pctChange(stats.salesCur, stats.salesPrev)}
+          value={orders === undefined ? "—" : `KES ${stats.salesCur.toLocaleString()}`}
+          change={orders === undefined ? undefined : pctChange(stats.salesCur, stats.salesPrev)}
           icon={<TrendingUp className="w-5 h-5" />}
           color="#C9A96E"
           sparkData={stats.salesSpark}
         />
         <MetricCard
           label="Orders"
-          value={orders === null ? "—" : String(stats.ordersCur)}
-          change={orders === null ? undefined : pctChange(stats.ordersCur, stats.ordersPrev)}
+          value={orders === undefined ? "—" : String(stats.ordersCur)}
+          change={orders === undefined ? undefined : pctChange(stats.ordersCur, stats.ordersPrev)}
           icon={<ShoppingCart className="w-5 h-5" />}
           color="#8b5cf6"
           sparkData={[]}
         />
         <MetricCard
           label="Conversion Rate"
-          value={orders === null || events === undefined ? "—" : `${stats.conversionCur.toFixed(1)}%`}
-          change={orders === null || events === undefined ? undefined : pctChange(stats.conversionCur, stats.conversionPrev)}
+          value={orders === undefined || events === undefined ? "—" : `${stats.conversionCur.toFixed(1)}%`}
+          change={orders === undefined || events === undefined ? undefined : pctChange(stats.conversionCur, stats.conversionPrev)}
           icon={<Percent className="w-5 h-5" />}
           color="#f59e0b"
           sparkData={[]}

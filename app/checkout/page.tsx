@@ -4,9 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { ShoppingBag, Lock, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { useCart } from "@/components/layout/CartContext";
 import { useTrackEvent } from "@/lib/analytics";
-import { createOrder } from "@/lib/admin-api";
 import { SHIPPING_ZONES, FREE_SHIPPING_THRESHOLD } from "@/lib/shipping";
 
 /* ── shared classes ── */
@@ -43,6 +44,7 @@ interface FormState {
 export default function CheckoutPage() {
   const { items, subtotal, clearCart, openCart, itemCount } = useCart();
   const track = useTrackEvent();
+  const createOrder = useMutation(api.orders.create);
 
   const [form, setForm] = useState<FormState>({
     email: "",
@@ -59,8 +61,10 @@ export default function CheckoutPage() {
     billingCity: "",
   });
   const [emailError, setEmailError] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "paystack">("cod");
   const [placing, setPlacing] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [payError, setPayError] = useState("");
 
   function set<K extends keyof FormState>(key: K, val: FormState[K]) {
     setForm((p) => ({ ...p, [key]: val }));
@@ -80,17 +84,49 @@ export default function CheckoutPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setPayError("");
     if (!form.email) { setEmailError(true); return; }
+    if (paymentMethod === "paystack" && !/^\S+@\S+\.\S+$/.test(form.email)) {
+      setEmailError(true);
+      setPayError("Enter a valid email address to pay with Paystack.");
+      return;
+    }
     if (items.length === 0) return;
     setPlacing(true);
-    createOrder({
+
+    const orderId = await createOrder({
       customer: { name: `${form.firstName} ${form.lastName}`.trim(), email: form.email, phone: "" },
       items: items.map((i) => ({ productId: i.productId, title: i.title, quantity: i.quantity, price: i.price })),
       shippingAddress: [form.address, form.apartment, form.city, form.postalCode].filter(Boolean).join(", "),
+      subtotal,
       total,
-      paymentStatus: "Pending",
-      fulfillmentStatus: "Unfulfilled",
-    }).catch(() => {});
+      paymentMethod: paymentMethod === "paystack" ? "Paystack" : "Cash on Delivery",
+    }).catch(() => null);
+
+    if (!orderId) {
+      setPlacing(false);
+      setPayError("Could not create your order. Please try again.");
+      return;
+    }
+
+    if (paymentMethod === "paystack") {
+      try {
+        const res = await fetch("/api/paystack/initialize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId, email: form.email, amount: total }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.authorizationUrl) throw new Error(data.error ?? "Failed to start payment");
+        window.location.href = data.authorizationUrl;
+        return;
+      } catch (err) {
+        setPlacing(false);
+        setPayError(err instanceof Error ? err.message : "Failed to start payment. Please try again.");
+        return;
+      }
+    }
+
     await new Promise((r) => setTimeout(r, 1200));
     setPlacing(false);
     setOrderPlaced(true);
@@ -253,23 +289,24 @@ export default function CheckoutPage() {
               <h2 className="text-white font-bold text-lg">Payment</h2>
               <p className="text-white/40 text-xs -mt-1">All transactions are secure and encrypted.</p>
               <div className="rounded-lg border border-gray-200 overflow-hidden divide-y divide-gray-100">
-                <label className="flex items-center gap-4 px-4 py-3.5 bg-[#FDF6EC] cursor-pointer">
-                  <RadioDot on={true} />
+                <label className={`flex items-center gap-4 px-4 py-3.5 cursor-pointer transition-colors ${paymentMethod === "cod" ? "bg-[#FDF6EC]" : "bg-white hover:bg-gray-50"}`}>
+                  <input type="radio" name="payment" className="sr-only" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} />
+                  <RadioDot on={paymentMethod === "cod"} />
                   <div>
                     <p className="text-gray-900 text-sm font-medium">Cash on Delivery</p>
                     <p className="text-gray-400 text-xs">Pay when your order arrives</p>
                   </div>
                 </label>
-                <div className="flex items-center gap-4 px-4 py-3.5 bg-white opacity-40 cursor-not-allowed">
-                  <RadioDot on={false} />
+                <label className={`flex items-center gap-4 px-4 py-3.5 cursor-pointer transition-colors ${paymentMethod === "paystack" ? "bg-[#FDF6EC]" : "bg-white hover:bg-gray-50"}`}>
+                  <input type="radio" name="payment" className="sr-only" checked={paymentMethod === "paystack"} onChange={() => setPaymentMethod("paystack")} />
+                  <RadioDot on={paymentMethod === "paystack"} />
                   <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-gray-900 text-sm font-medium">Paystack — Card / M-Pesa</p>
-                    </div>
-                    <p className="text-gray-400 text-xs">Coming soon</p>
+                    <p className="text-gray-900 text-sm font-medium">Paystack — Card / M-Pesa</p>
+                    <p className="text-gray-400 text-xs">Pay securely online, instantly confirmed</p>
                   </div>
-                </div>
+                </label>
               </div>
+              {payError && <p className="text-red-400 text-xs">{payError}</p>}
             </section>
 
             {/* Billing address */}
@@ -312,12 +349,12 @@ export default function CheckoutPage() {
               {placing ? (
                 <>
                   <div className="w-4 h-4 border-2 border-[#0B3D33]/30 border-t-[#0B3D33] rounded-full animate-spin" />
-                  Placing order…
+                  {paymentMethod === "paystack" ? "Redirecting to Paystack…" : "Placing order…"}
                 </>
               ) : (
                 <>
                   <Lock className="w-4 h-4" />
-                  Place order — KES {total.toLocaleString()}
+                  {paymentMethod === "paystack" ? "Pay with Paystack — " : "Place order — "}KES {total.toLocaleString()}
                 </>
               )}
             </button>

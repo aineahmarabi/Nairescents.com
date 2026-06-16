@@ -1,13 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
-import { getOrders } from "@/lib/admin-api";
-import type { Order } from "@/lib/types";
+import { useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { Search, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 
 const STATUS_COLORS: Record<string, string> = {
   Paid: "bg-emerald-100 text-emerald-700",
   Pending: "bg-amber-100 text-amber-700",
+  Failed: "bg-red-100 text-red-700",
   Refunded: "bg-red-100 text-red-700",
   Fulfilled: "bg-blue-100 text-blue-700",
   Unfulfilled: "bg-gray-100 text-gray-500",
@@ -15,16 +16,14 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const orders = useQuery(api.orders.list);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getOrders().then(setOrders).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  const loading = orders === undefined;
+  const list = orders ?? [];
 
-  const filtered = orders.filter(o => {
+  const filtered = list.filter((o) => {
     const matchSearch = o.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
       o.customer.name.toLowerCase().includes(search.toLowerCase());
     const matchFilter = filter === "all" ||
@@ -39,7 +38,7 @@ export default function AdminOrdersPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Orders</h1>
-        <div className="text-sm text-gray-400">{orders.length} total</div>
+        <div className="text-sm text-gray-400">{list.length} total</div>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -82,16 +81,16 @@ export default function AdminOrdersPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.map(o => (
-                <tr key={o.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={o._id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
-                    <Link href={`/admin/dashboard/orders/${o.id}`} className="font-medium text-[#0B3D33] hover:underline">{o.orderNumber}</Link>
+                    <Link href={`/admin/dashboard/orders/${o._id}`} className="font-medium text-[#0B3D33] hover:underline">{o.orderNumber}</Link>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
                     <p className="text-gray-800">{o.customer.name}</p>
                     <p className="text-xs text-gray-400">{o.customer.email}</p>
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">
-                    {new Date(o.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    {new Date(o._creationTime).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${STATUS_COLORS[o.paymentStatus] ?? "bg-gray-100 text-gray-500"}`}>
