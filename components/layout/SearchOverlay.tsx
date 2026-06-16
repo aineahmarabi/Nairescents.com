@@ -92,7 +92,7 @@ export default function SearchOverlay({ open, onClose }: Props) {
                     <p className="text-white/30 text-sm py-6 text-center">Searching…</p>
                   ) : results.length === 0 ? (
                     <p className="text-white/30 text-sm py-6 text-center">
-                      No products found for "{q}".
+                      No products found for &quot;{q}&quot;.
                     </p>
                   ) : (
                     <ul className="flex flex-col gap-1">
