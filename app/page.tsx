@@ -5,7 +5,8 @@ import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import DynamicHero from "@/components/sections/DynamicHero";
-import BestSellersSection from "@/components/sections/BestSellersSection";
+import LattafaSection from "@/components/sections/LattafaSection";
+import WomenSection from "@/components/sections/WomenSection";
 
 export const metadata: Metadata = { title: "Scents by Naire — Scent. Identity. Presence." };
 
@@ -40,7 +41,8 @@ export default async function HomePage() {
       <Navbar />
       <main>
         <DynamicHero initialPanelImages={initialPanelImages} />
-        <BestSellersSection />
+        <LattafaSection />
+        <WomenSection />
       </main>
       <Footer />
     </>
