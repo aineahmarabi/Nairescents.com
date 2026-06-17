@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Search, ShoppingCart, Plus, Download, Upload } from "lucide-react";
+import { Search, ShoppingCart, Plus, Download, Upload, ArrowDown, ArrowUp } from "lucide-react";
 import Link from "next/link";
 import { SkeletonTable } from "@/components/admin/ui/Skeleton";
 import { exportOrdersToCsv } from "@/lib/csv";
@@ -17,10 +17,29 @@ const STATUS_COLORS: Record<string, string> = {
   Cancelled: "bg-red-100 text-red-500",
 };
 
+function friendlyDate(ts: number): string {
+  const now = new Date();
+  const d = new Date(ts);
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterdayStart = todayStart - 86400000;
+
+  const timeStr = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }).toLowerCase();
+
+  if (ts >= todayStart) return `Today at ${timeStr}`;
+  if (ts >= yesterdayStart) return `Yesterday at ${timeStr}`;
+
+  const daysAgo = Math.floor((todayStart - ts) / 86400000);
+  if (daysAgo < 7) {
+    return d.toLocaleDateString("en-GB", { weekday: "long" }) + ` at ${timeStr}`;
+  }
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
 export default function AdminOrdersPage() {
   const orders = useQuery(api.orders.list);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [dateAsc, setDateAsc] = useState(false); // default: newest first (desc)
 
   function handleExport() {
     if (!orders?.length) return;
@@ -37,16 +56,22 @@ export default function AdminOrdersPage() {
   const loading = orders === undefined;
   const list = orders ?? [];
 
-  const filtered = list.filter((o) => {
-    const matchSearch = o.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
-      o.customer.name.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "all" ||
-      (filter === "paid" && o.paymentStatus === "Paid") ||
-      (filter === "pending" && o.paymentStatus === "Pending") ||
-      (filter === "unfulfilled" && o.fulfillmentStatus === "Unfulfilled") ||
-      (filter === "fulfilled" && o.fulfillmentStatus === "Fulfilled");
-    return matchSearch && matchFilter;
-  });
+  const filtered = list
+    .filter((o) => {
+      const matchSearch =
+        o.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
+        o.customer.name.toLowerCase().includes(search.toLowerCase());
+      const matchFilter =
+        filter === "all" ||
+        (filter === "paid" && o.paymentStatus === "Paid") ||
+        (filter === "pending" && o.paymentStatus === "Pending") ||
+        (filter === "unfulfilled" && o.fulfillmentStatus === "Unfulfilled") ||
+        (filter === "fulfilled" && o.fulfillmentStatus === "Fulfilled");
+      return matchSearch && matchFilter;
+    })
+    .sort((a, b) => dateAsc ? a._creationTime - b._creationTime : b._creationTime - a._creationTime);
+
+  const DateIcon = dateAsc ? ArrowUp : ArrowDown;
 
   return (
     <div className="space-y-5">
@@ -80,11 +105,18 @@ export default function AdminOrdersPage() {
         <div className="flex flex-col sm:flex-row gap-3 p-4 border-b border-gray-100">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search orders…"
-              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A96E]/30" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search orders…"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C9A96E]/30"
+            />
           </div>
-          <select value={filter} onChange={e => setFilter(e.target.value)}
-            className="text-sm border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]/30 bg-white">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="text-sm border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]/30 bg-white"
+          >
             <option value="all">All orders</option>
             <option value="pending">Payment pending</option>
             <option value="paid">Paid</option>
@@ -98,7 +130,9 @@ export default function AdminOrdersPage() {
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <ShoppingCart className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">{search ? "No matching orders" : "No orders yet"}</p>
+            <p className="text-gray-500 font-medium">
+              {search ? "No matching orders" : "No orders yet"}
+            </p>
           </div>
         ) : (
           <table className="w-full text-sm">
@@ -106,36 +140,58 @@ export default function AdminOrdersPage() {
               <tr>
                 <th className="text-left px-4 py-3 font-semibold">Order</th>
                 <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">Customer</th>
-                <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">Date</th>
+                <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">
+                  <button
+                    onClick={() => setDateAsc((v) => !v)}
+                    className="inline-flex items-center gap-1 hover:text-gray-800 transition-colors"
+                  >
+                    Date <DateIcon className="w-3 h-3 text-[#C9A96E]" />
+                  </button>
+                </th>
                 <th className="text-left px-4 py-3 font-semibold">Payment</th>
                 <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">Fulfillment</th>
                 <th className="text-right px-4 py-3 font-semibold">Total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map(o => (
+              {filtered.map((o) => (
                 <tr key={o._id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
-                    <Link href={`/admin/dashboard/orders/${o._id}`} className="font-medium text-[#0B3D33] hover:underline">{o.orderNumber}</Link>
+                    <Link
+                      href={`/admin/dashboard/orders/${o._id}`}
+                      className="font-medium text-[#0B3D33] hover:underline"
+                    >
+                      {o.orderNumber}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
                     <p className="text-gray-800">{o.customer.name}</p>
                     <p className="text-xs text-gray-400">{o.customer.email}</p>
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">
-                    {new Date(o._creationTime).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    {friendlyDate(o._creationTime)}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${STATUS_COLORS[o.paymentStatus] ?? "bg-gray-100 text-gray-500"}`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                        STATUS_COLORS[o.paymentStatus] ?? "bg-gray-100 text-gray-500"
+                      }`}
+                    >
                       {o.paymentStatus}
                     </span>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${STATUS_COLORS[o.fulfillmentStatus] ?? "bg-gray-100 text-gray-500"}`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                        STATUS_COLORS[o.fulfillmentStatus] ?? "bg-gray-100 text-gray-500"
+                      }`}
+                    >
                       {o.fulfillmentStatus}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right font-semibold text-gray-800">KES {o.total.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-gray-800">
+                    KES {o.total.toLocaleString()}
+                  </td>
                 </tr>
               ))}
             </tbody>

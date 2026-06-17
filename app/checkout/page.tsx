@@ -9,6 +9,7 @@ import { api } from "@/convex/_generated/api";
 import { useCart } from "@/components/layout/CartContext";
 import { useTrackEvent } from "@/lib/analytics";
 import { SHIPPING_ZONES, FREE_SHIPPING_THRESHOLD } from "@/lib/shipping";
+import { siVisa, siMastercard } from "simple-icons";
 
 /* ── shared classes ── */
 const INPUT =
@@ -27,37 +28,45 @@ function RadioDot({ on }: { on: boolean }) {
 }
 
 /* ── Payment brand badges
-   SVG mark geometry sourced from Visa / Mastercard / Safaricom merchant-use
-   brand guidelines — the same assets Paystack's own checkout renders.      */
+   Visa + Mastercard: path data from simple-icons (MIT, accurately reproduced
+   brand marks). M-Pesa: HTML badge — HTML text renders sharper than SVG
+   <text> at small sizes, and Safaricom's mark isn't in any major icon set.  */
 function VisaBadge() {
   return (
-    <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visa" role="img">
-      <rect width="38" height="24" rx="4" fill="#1A1F71" />
-      <text x="50%" y="16" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontStyle="italic" fontSize="13" fill="#FFFFFF" letterSpacing="0.5">VISA</text>
-    </svg>
+    <span
+      aria-label="Visa"
+      className="inline-flex h-[26px] w-[42px] items-center justify-center rounded bg-white ring-1 ring-inset ring-gray-200 px-1.5 shrink-0"
+    >
+      <svg viewBox="0 0 24 24" height="9" fill={`#${siVisa.hex}`} aria-hidden="true">
+        <path d={siVisa.path} />
+      </svg>
+    </span>
   );
 }
 
 function MastercardBadge() {
   return (
-    <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Mastercard" role="img">
-      <rect width="38" height="24" rx="4" fill="#252525" />
-      {/* left circle — red */}
-      <circle cx="15" cy="12" r="7" fill="#EB001B" />
-      {/* right circle — orange/yellow */}
-      <circle cx="23" cy="12" r="7" fill="#F79E1B" />
-      {/* overlap blend in the center */}
-      <path d="M19 6.8a7 7 0 0 1 0 10.4A7 7 0 0 1 19 6.8z" fill="#FF5F00" />
-    </svg>
+    <span
+      aria-label="Mastercard"
+      className="inline-flex h-[26px] w-[42px] items-center justify-center rounded bg-white ring-1 ring-inset ring-gray-200 shrink-0"
+    >
+      <svg viewBox="0 0 24 24" height="18" fill={`#${siMastercard.hex}`} aria-hidden="true">
+        <path d={siMastercard.path} />
+      </svg>
+    </span>
   );
 }
 
 function MPesaBadge() {
   return (
-    <svg width="48" height="24" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="M-Pesa" role="img">
-      <rect width="48" height="24" rx="4" fill="#00A651" />
-      <text x="50%" y="16" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="10" fill="#FFFFFF" letterSpacing="0.3">M-PESA</text>
-    </svg>
+    <span
+      aria-label="M-Pesa"
+      className="inline-flex h-[26px] items-center justify-center rounded bg-[#00A651] px-2 shrink-0"
+    >
+      <span className="text-white font-extrabold text-[9px] tracking-wide leading-none">
+        M-PESA
+      </span>
+    </span>
   );
 }
 
