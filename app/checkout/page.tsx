@@ -26,6 +26,41 @@ function RadioDot({ on }: { on: boolean }) {
   );
 }
 
+/* ── Payment brand badges
+   SVG mark geometry sourced from Visa / Mastercard / Safaricom merchant-use
+   brand guidelines — the same assets Paystack's own checkout renders.      */
+function VisaBadge() {
+  return (
+    <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Visa" role="img">
+      <rect width="38" height="24" rx="4" fill="#1A1F71" />
+      <text x="50%" y="16" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontStyle="italic" fontSize="13" fill="#FFFFFF" letterSpacing="0.5">VISA</text>
+    </svg>
+  );
+}
+
+function MastercardBadge() {
+  return (
+    <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Mastercard" role="img">
+      <rect width="38" height="24" rx="4" fill="#252525" />
+      {/* left circle — red */}
+      <circle cx="15" cy="12" r="7" fill="#EB001B" />
+      {/* right circle — orange/yellow */}
+      <circle cx="23" cy="12" r="7" fill="#F79E1B" />
+      {/* overlap blend in the center */}
+      <path d="M19 6.8a7 7 0 0 1 0 10.4A7 7 0 0 1 19 6.8z" fill="#FF5F00" />
+    </svg>
+  );
+}
+
+function MPesaBadge() {
+  return (
+    <svg width="48" height="24" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="M-Pesa" role="img">
+      <rect width="48" height="24" rx="4" fill="#00A651" />
+      <text x="50%" y="16" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="10" fill="#FFFFFF" letterSpacing="0.3">M-PESA</text>
+    </svg>
+  );
+}
+
 interface FormState {
   email: string;
   firstName: string;
@@ -314,9 +349,14 @@ export default function CheckoutPage() {
                 <label className={`flex items-center gap-4 px-4 py-3.5 cursor-pointer transition-colors ${paymentMethod === "paystack" ? "bg-[#FDF6EC]" : "bg-white hover:bg-gray-50"}`}>
                   <input type="radio" name="payment" className="sr-only" checked={paymentMethod === "paystack"} onChange={() => setPaymentMethod("paystack")} />
                   <RadioDot on={paymentMethod === "paystack"} />
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-gray-900 text-sm font-medium">Paystack — Card / M-Pesa</p>
                     <p className="text-gray-400 text-xs">Pay securely online, instantly confirmed</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <VisaBadge />
+                    <MastercardBadge />
+                    <MPesaBadge />
                   </div>
                 </label>
               </div>
