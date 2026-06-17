@@ -5,7 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import MetricCard from "@/components/admin/ui/MetricCard";
 import SalesChart from "@/components/admin/charts/SalesChart";
-import { RANGE_KEYS, RangeKey, getRangeBounds, pctChange, bucketCounts, dayLabel } from "@/lib/dateRanges";
+import { RANGE_KEYS, RangeKey, getRangeBounds, pctChange, bucketCounts, bucketWindows } from "@/lib/dateRanges";
 import { Package, CheckCircle, Clock, Users, ShoppingCart, TrendingUp, Percent } from "lucide-react";
 
 function greeting() {
@@ -64,15 +64,12 @@ export default function AdminDashboardPage() {
     const conversionCur = sessionsCur > 0 ? (ordersCur.length / sessionsCur) * 100 : 0;
     const conversionPrev = sessionsPrev > 0 ? (ordersPrev.length / sessionsPrev) * 100 : 0;
 
-    const chartData = ordersCur.length
-      ? Object.entries(
-          ordersCur.reduce<Record<string, number>>((acc, o) => {
-            const k = dayLabel(o._creationTime);
-            acc[k] = (acc[k] ?? 0) + o.total;
-            return acc;
-          }, {})
-        ).map(([date, sales]) => ({ date, sales }))
-      : [];
+    const chartData = bucketWindows(bounds.start, bounds.end).map((w) => ({
+      date: w.label,
+      sales: ordersCur
+        .filter((o) => o._creationTime >= w.start && o._creationTime < w.end)
+        .reduce((s, o) => s + o.total, 0),
+    }));
 
     return {
       sessionsCur, sessionsPrev, sessionsSpark,

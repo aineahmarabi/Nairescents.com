@@ -1,63 +1,79 @@
 "use client";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
+import { BarChart2 } from "lucide-react";
 
 interface DataPoint { date: string; sales: number; }
 interface Props { data: DataPoint[]; }
 
+function niceMax(value: number): number {
+  if (value === 0) return 100;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
+  const normalized = value / magnitude;
+  const nice = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  return nice * magnitude;
+}
+
 export default function SalesChart({ data }: Props) {
-  if (data.length === 0) {
+  if (data.length === 0 || data.every((d) => d.sales === 0)) {
     return (
-      <div className="h-64 flex flex-col items-center justify-center gap-2" style={{ color: "#d1d5db" }}>
-        <svg className="w-10 h-10" viewBox="0 0 40 30" fill="none">
-          <polyline points="0,28 8,20 16,22 24,10 32,14 40,4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span style={{ fontSize: 13 }}>No data yet — sales appear once you receive orders.</span>
+      <div className="h-48 flex flex-col items-center justify-center gap-2 text-gray-300">
+        <BarChart2 className="w-8 h-8" />
+        <span className="text-sm text-gray-400">No sales yet — orders will appear here.</span>
       </div>
     );
   }
 
-  const W = 600; const H = 200;
-  const PAD = { top: 16, right: 16, bottom: 32, left: 56 };
-  const cW = W - PAD.left - PAD.right;
-  const cH = H - PAD.top - PAD.bottom;
-  const maxV = Math.max(...data.map(d => d.sales), 1);
-  const minV = Math.min(...data.map(d => d.sales));
-  const rng = maxV - minV || 1;
-  const toX = (i: number) => (i / (data.length - 1)) * cW;
-  const toY = (v: number) => cH - ((v - minV) / rng) * cH;
-  const pts = data.map((d, i) => `${toX(i)},${toY(d.sales)}`).join(" ");
-  const area = `M0,${toY(data[0].sales)} ${data.map((d, i) => `L${toX(i)},${toY(d.sales)}`).join(" ")} L${toX(data.length - 1)},${cH} L0,${cH} Z`;
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map(t => ({ val: Math.round(minV + t * rng), y: cH - t * cH }));
+  const max = Math.max(...data.map((d) => d.sales));
+  const yMax = niceMax(max);
 
   return (
-    <div className="w-full overflow-x-auto">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 280 }}>
+    <ResponsiveContainer width="100%" height={200}>
+      <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 8 }}>
         <defs>
-          <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#C9A96E" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#C9A96E" stopOpacity="0" />
+          <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#C9A96E" stopOpacity={0.22} />
+            <stop offset="100%" stopColor="#C9A96E" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <g transform={`translate(${PAD.left},${PAD.top})`}>
-          {ticks.map(t => (
-            <g key={t.val}>
-              <line x1={0} y1={t.y} x2={cW} y2={t.y} stroke="#f0ede8" strokeWidth="1" />
-              <text x={-8} y={t.y + 4} textAnchor="end" fontSize="10" fill="#9ca3af">
-                {t.val >= 1000 ? `${Math.round(t.val / 1000)}k` : t.val}
-              </text>
-            </g>
-          ))}
-          <path d={area} fill="url(#sg)" />
-          <polyline points={pts} fill="none" stroke="#C9A96E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          {data.map((d, i) => (
-            <g key={i}>
-              <circle cx={toX(i)} cy={toY(d.sales)} r="3" fill="#C9A96E" />
-              {(i === 0 || i === data.length - 1 || i % Math.ceil(data.length / 6) === 0) && (
-                <text x={toX(i)} y={cH + 16} textAnchor="middle" fontSize="10" fill="#9ca3af">{d.date}</text>
-              )}
-            </g>
-          ))}
-        </g>
-      </svg>
-    </div>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0ede8" vertical={false} />
+        <XAxis
+          dataKey="date"
+          tick={{ fontSize: 10, fill: "#9ca3af" }}
+          tickLine={false}
+          axisLine={false}
+          interval="preserveStartEnd"
+        />
+        <YAxis
+          tick={{ fontSize: 10, fill: "#9ca3af" }}
+          tickLine={false}
+          axisLine={false}
+          domain={[0, yMax]}
+          tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)}
+          width={38}
+        />
+        <Tooltip
+          formatter={(v) => [`KES ${Number(v ?? 0).toLocaleString()}`, "Revenue"]}
+          contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e5e7eb" }}
+          cursor={{ stroke: "#C9A96E", strokeWidth: 1, strokeDasharray: "4 2" }}
+        />
+        <Area
+          type="monotone"
+          dataKey="sales"
+          stroke="#C9A96E"
+          strokeWidth={2}
+          fill="url(#salesGrad)"
+          dot={false}
+          activeDot={{ r: 4, fill: "#C9A96E", stroke: "#fff", strokeWidth: 2 }}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
   );
 }

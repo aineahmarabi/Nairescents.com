@@ -9,7 +9,6 @@ import { api } from "@/convex/_generated/api";
 import { useCart } from "@/components/layout/CartContext";
 import { useTrackEvent } from "@/lib/analytics";
 import { SHIPPING_ZONES, FREE_SHIPPING_THRESHOLD } from "@/lib/shipping";
-import { siVisa, siMastercard } from "simple-icons";
 
 /* ── shared classes ── */
 const INPUT =
@@ -27,48 +26,23 @@ function RadioDot({ on }: { on: boolean }) {
   );
 }
 
-/* ── Payment brand badges
-   Visa + Mastercard: path data from simple-icons (MIT, accurately reproduced
-   brand marks). M-Pesa: HTML badge — HTML text renders sharper than SVG
-   <text> at small sizes, and Safaricom's mark isn't in any major icon set.  */
-function VisaBadge() {
+/* ── Payment brand badges — local SVG assets from /public/payment-icons/ */
+function PayBadge({ src, label }: { src: string; label: string }) {
   return (
     <span
-      aria-label="Visa"
-      className="inline-flex h-[26px] w-[42px] items-center justify-center rounded bg-white ring-1 ring-inset ring-gray-200 px-1.5 shrink-0"
+      aria-label={label}
+      className="inline-flex h-[26px] w-[44px] items-center justify-center rounded bg-white ring-1 ring-inset ring-gray-200 p-1 shrink-0"
     >
-      <svg viewBox="0 0 24 24" height="9" fill={`#${siVisa.hex}`} aria-hidden="true">
-        <path d={siVisa.path} />
-      </svg>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={label} className="h-full w-full object-contain" />
     </span>
   );
 }
 
-function MastercardBadge() {
-  return (
-    <span
-      aria-label="Mastercard"
-      className="inline-flex h-[26px] w-[42px] items-center justify-center rounded bg-white ring-1 ring-inset ring-gray-200 shrink-0"
-    >
-      <svg viewBox="0 0 24 24" height="18" fill={`#${siMastercard.hex}`} aria-hidden="true">
-        <path d={siMastercard.path} />
-      </svg>
-    </span>
-  );
-}
-
-function MPesaBadge() {
-  return (
-    <span
-      aria-label="M-Pesa"
-      className="inline-flex h-[26px] items-center justify-center rounded bg-[#00A651] px-2 shrink-0"
-    >
-      <span className="text-white font-extrabold text-[9px] tracking-wide leading-none">
-        M-PESA
-      </span>
-    </span>
-  );
-}
+function VisaBadge() { return <PayBadge src="/payment-icons/visacard.svg" label="Visa" />; }
+function MastercardBadge() { return <PayBadge src="/payment-icons/mastercard.svg" label="Mastercard" />; }
+function MPesaBadge() { return <PayBadge src="/payment-icons/mpesacard.svg" label="M-Pesa" />; }
+function AirtelMoneyBadge() { return <PayBadge src="/payment-icons/airtel_moneycard.svg" label="Airtel Money" />; }
 
 interface FormState {
   email: string;
@@ -359,13 +333,14 @@ export default function CheckoutPage() {
                   <input type="radio" name="payment" className="sr-only" checked={paymentMethod === "paystack"} onChange={() => setPaymentMethod("paystack")} />
                   <RadioDot on={paymentMethod === "paystack"} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-gray-900 text-sm font-medium">Paystack — Card / M-Pesa</p>
+                    <p className="text-gray-900 text-sm font-medium">Paystack — Card / Mobile Money</p>
                     <p className="text-gray-400 text-xs">Pay securely online, instantly confirmed</p>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     <VisaBadge />
                     <MastercardBadge />
                     <MPesaBadge />
+                    <AirtelMoneyBadge />
                   </div>
                 </label>
               </div>
