@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Search, ShoppingCart, Plus } from "lucide-react";
+import { Search, ShoppingCart, Plus, Download, Upload } from "lucide-react";
 import Link from "next/link";
 import { SkeletonTable } from "@/components/admin/ui/Skeleton";
+import { exportOrdersToCsv } from "@/lib/csv";
 
 const STATUS_COLORS: Record<string, string> = {
   Paid: "bg-emerald-100 text-emerald-700",
@@ -20,6 +21,18 @@ export default function AdminOrdersPage() {
   const orders = useQuery(api.orders.list);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+
+  function handleExport() {
+    if (!orders?.length) return;
+    const csv = exportOrdersToCsv(orders as Parameters<typeof exportOrdersToCsv>[0]);
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "nairescents-orders.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   const loading = orders === undefined;
   const list = orders ?? [];
@@ -39,8 +52,21 @@ export default function AdminOrdersPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Orders</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-gray-400">{list.length} total</span>
+          <button
+            onClick={handleExport}
+            disabled={!orders?.length}
+            className="inline-flex items-center gap-1.5 border border-gray-200 text-gray-600 text-sm font-medium px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-40"
+          >
+            <Download className="w-3.5 h-3.5" /> Export
+          </button>
+          <Link
+            href="/admin/dashboard/orders/import"
+            className="inline-flex items-center gap-1.5 border border-gray-200 text-gray-600 text-sm font-medium px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            <Upload className="w-3.5 h-3.5" /> Import
+          </Link>
           <Link
             href="/admin/dashboard/orders/new"
             className="inline-flex items-center gap-1.5 bg-[#0B3D33] text-white text-sm font-semibold px-4 py-2 rounded-xl hover:opacity-90 active:scale-[0.98] transition-all"

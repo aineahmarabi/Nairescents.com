@@ -299,3 +299,194 @@ export function parseCsv(text: string): ImportProduct[] {
 
   return products;
 }
+
+
+// ============================================================
+// Orders CSV — Shopify-compatible import / export
+// ============================================================
+
+const ORDER_HEADERS = [
+  "Name", "Email", "Financial Status", "Paid at", "Fulfillment Status", "Fulfilled at",
+  "Currency", "Subtotal", "Shipping", "Taxes", "Total",
+  "Discount Code", "Discount Amount", "Shipping Method", "Created at",
+  "Lineitem quantity", "Lineitem name", "Lineitem price", "Lineitem sku",
+  "Billing Name", "Billing Address1", "Billing City", "Billing Zip", "Billing Province",
+  "Billing Country", "Billing Phone",
+  "Shipping Name", "Shipping Address1", "Shipping City", "Shipping Zip", "Shipping Province",
+  "Shipping Country", "Shipping Phone",
+  "Notes", "Phone", "Payment Method", "Payment Reference",
+];
+
+interface CsvOrder {
+  orderNumber: string;
+  customer: { name: string; email: string; phone?: string };
+  items: { title: string; quantity: number; price: number; sku?: string }[];
+  shippingAddress?: string;
+  subtotal: number;
+  shippingFee?: number;
+  shippingZoneName?: string;
+  total: number;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  paymentMethod?: string;
+  paystackReference?: string;
+  notes?: string;
+  _creationTime: number;
+}
+
+export function exportOrdersToCsv(orders: CsvOrder[]): string {
+  const rows: string[][] = [ORDER_HEADERS];
+
+  for (const o of orders) {
+    const createdAt = new Date(o._creationTime).toISOString();
+    const paidAt = o.paymentStatus === "Paid" ? createdAt : "";
+    const fulfilledAt = o.fulfillmentStatus === "Fulfilled" ? createdAt : "";
+    const financialStatus = o.paymentStatus.toLowerCase();
+    const fulfillmentStatus = o.fulfillmentStatus.toLowerCase();
+    const items = o.items.length > 0 ? o.items : [{ title: "", quantity: 1, price: 0, sku: "" }];
+
+    items.forEach((item, idx) => {
+      rows.push([
+        idx === 0 ? o.orderNumber : "",
+        idx === 0 ? o.customer.email : "",
+        idx === 0 ? financialStatus : "",
+        idx === 0 ? paidAt : "",
+        idx === 0 ? fulfillmentStatus : "",
+        idx === 0 ? fulfilledAt : "",
+        idx === 0 ? "KES" : "",
+        idx === 0 ? String(o.subtotal) : "",
+        idx === 0 ? String(o.shippingFee ?? o.total - o.subtotal) : "",
+        idx === 0 ? "0" : "",
+        idx === 0 ? String(o.total) : "",
+        "",
+        "0",
+        idx === 0 ? (o.shippingZoneName ?? "") : "",
+        idx === 0 ? createdAt : "",
+        String(item.quantity),
+        item.title,
+        String(item.price),
+        item.sku ?? "",
+        idx === 0 ? o.customer.name : "",
+        idx === 0 ? (o.shippingAddress ?? "") : "",
+        "", "", "", "KE",
+        idx === 0 ? (o.customer.phone ?? "") : "",
+        idx === 0 ? o.customer.name : "",
+        idx === 0 ? (o.shippingAddress ?? "") : "",
+        "", "", "", "KE",
+        idx === 0 ? (o.customer.phone ?? "") : "",
+        idx === 0 ? (o.notes ?? "") : "",
+        idx === 0 ? (o.customer.phone ?? "") : "",
+        idx === 0 ? (o.paymentMethod ?? "") : "",
+        idx === 0 ? (o.paystackReference ?? "") : "",
+      ].map(esc));
+    });
+  }
+
+  return rows.map((r) => r.join(",")).join("\n");
+}
+
+export interface ImportOrder {
+  orderNumber: string;
+  customer: { name: string; email: string; phone?: string };
+  items: { title: string; quantity: number; price: number }[];
+  shippingAddress?: string;
+  subtotal: number;
+  shippingFee?: number;
+  shippingZoneName?: string;
+  total: number;
+  paymentStatus: "Pending" | "Paid" | "Failed" | "Refunded";
+  fulfillmentStatus: "Unfulfilled" | "Fulfilled" | "Cancelled";
+  paymentMethod?: "Cash on Delivery" | "Paystack" | "Manual";
+  paystackReference?: string;
+  notes?: string;
+}
+
+function mapFinancialStatus(s: string): ImportOrder["paymentStatus"] {
+  const v = s.toLowerCase();
+  if (v === "paid") return "Paid";
+  if (v === "refunded" || v === "partially_refunded") return "Refunded";
+  if (v === "voided") return "Failed";
+  return "Pending";
+}
+
+function mapFulfillmentStatus(s: string): ImportOrder["fulfillmentStatus"] {
+  const v = s.toLowerCase();
+  if (v === "fulfilled") return "Fulfilled";
+  if (v === "cancelled") return "Cancelled";
+  return "Unfulfilled";
+}
+
+function mapPaymentMethod(s: string): ImportOrder["paymentMethod"] {
+  const v = s.toLowerCase();
+  if (v.includes("paystack") || v.includes("card") || v.includes("online")) return "Paystack";
+  if (v.includes("cash")) return "Cash on Delivery";
+  return undefined;
+}
+
+export function parseOrdersCsv(text: string): ImportOrder[] {
+  const stripped = text.replace(/^﻿/, "");
+  const lines = stripped.split(/\r?\n/).filter((l) => l.trim());
+  if (lines.length < 2) return [];
+
+  const headers = parseCsvLine(lines[0]);
+  const col = (name: string) => headers.indexOf(name);
+
+  // Group rows by order Name
+  const grouped = new Map<string, string[][]>();
+  for (let i = 1; i < lines.length; i++) {
+    const row = parseCsvLine(lines[i]);
+    const name = row[col("Name")]?.trim();
+    if (name) {
+      if (!grouped.has(name)) grouped.set(name, []);
+      grouped.get(name)!.push(row);
+    } else {
+      // continuation row (extra line items)
+      const last = Array.from(grouped.keys()).pop();
+      if (last) grouped.get(last)!.push(row);
+    }
+  }
+
+  const orders: ImportOrder[] = [];
+
+  for (const [name, rows] of Array.from(grouped.entries())) {
+    const first = rows[0];
+    const g = (colName: string, r: string[] = first) => (r[col(colName)] ?? "").trim();
+
+    const items: ImportOrder["items"] = [];
+    for (const row of rows) {
+      const qty = parseInt(g("Lineitem quantity", row)) || 1;
+      const title = g("Lineitem name", row);
+      const price = parseFloat(g("Lineitem price", row)) || 0;
+      if (title) items.push({ title, quantity: qty, price });
+    }
+
+    const subtotal = parseFloat(g("Subtotal")) || 0;
+    const shipping = parseFloat(g("Shipping")) || 0;
+    const total = parseFloat(g("Total")) || subtotal + shipping;
+    const phone = (g("Phone") || g("Billing Phone") || g("Shipping Phone") || undefined);
+    const addr = [g("Shipping Address1"), g("Shipping City"), g("Shipping Province"), g("Shipping Zip"), g("Shipping Country")]
+      .filter(Boolean).join(", ") || undefined;
+
+    orders.push({
+      orderNumber: name,
+      customer: {
+        name: g("Billing Name") || g("Shipping Name") || "Unknown",
+        email: g("Email") || "unknown@shopify-import.com",
+        phone: phone || undefined,
+      },
+      items,
+      shippingAddress: addr,
+      subtotal,
+      shippingFee: shipping || undefined,
+      shippingZoneName: g("Shipping Method") || undefined,
+      total,
+      paymentStatus: mapFinancialStatus(g("Financial Status")),
+      fulfillmentStatus: mapFulfillmentStatus(g("Fulfillment Status")),
+      paymentMethod: mapPaymentMethod(g("Payment Method")),
+      paystackReference: g("Payment Reference") || undefined,
+      notes: g("Notes") || undefined,
+    });
+  }
+
+  return orders;
+}

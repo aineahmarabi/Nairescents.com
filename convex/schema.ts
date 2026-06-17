@@ -114,6 +114,8 @@ export default defineSchema({
     ),
     shippingAddress: v.optional(v.string()),
     subtotal: v.number(),
+    shippingFee: v.optional(v.number()),
+    shippingZoneName: v.optional(v.string()),
     total: v.number(),
     paymentMethod: v.optional(
       v.union(v.literal("Cash on Delivery"), v.literal("Paystack"), v.literal("Manual"))

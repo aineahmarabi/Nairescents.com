@@ -71,7 +71,7 @@ function ForMenContent() {
           <p className="text-white/30 text-lg">No products yet.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
           {products.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       )}

@@ -49,7 +49,7 @@ export default function BestSellers({ products }: Props) {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6"
           >
             {products.slice(0, 5).map((p) => (
               <motion.div key={p.id} variants={item}>

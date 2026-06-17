@@ -99,6 +99,8 @@ export default function CheckoutPage() {
       items: items.map((i) => ({ productId: i.productId, title: i.title, quantity: i.quantity, price: i.price })),
       shippingAddress: [form.address, form.apartment, form.city, form.postalCode].filter(Boolean).join(", "),
       subtotal,
+      shippingFee: shippingCost,
+      shippingZoneName: selectedZone.name,
       total,
       paymentMethod: paymentMethod === "paystack" ? "Paystack" : "Cash on Delivery",
     }).catch(() => null);
@@ -150,9 +152,21 @@ export default function CheckoutPage() {
             </svg>
           </div>
           <h1 className="text-white text-2xl font-bold mb-3">Order Placed!</h1>
-          <p className="text-white/60 text-sm leading-relaxed mb-8">
+          <p className="text-white/60 text-sm leading-relaxed mb-5">
             Thank you, {form.firstName}. Your order has been received. We&apos;ll confirm via WhatsApp or email shortly.
           </p>
+          <div className="text-left rounded-xl border border-white/10 bg-white/5 p-4 mb-8 space-y-2 text-sm">
+            <div className="flex justify-between text-white/60">
+              <span>Subtotal</span><span>Ksh {subtotal.toLocaleString()}.00</span>
+            </div>
+            <div className="flex justify-between text-white/60">
+              <span>Shipping{selectedZone.price === 0 ? " (Free)" : ` — ${selectedZone.name.split(",")[0]}`}</span>
+              <span>{shippingCost === 0 ? "FREE" : `Ksh ${shippingCost.toLocaleString()}.00`}</span>
+            </div>
+            <div className="flex justify-between text-white font-semibold border-t border-white/10 pt-2">
+              <span>Total</span><span>Ksh {total.toLocaleString()}.00</span>
+            </div>
+          </div>
           <Link
             href="/"
             className="inline-block px-8 py-3 rounded-xl border border-[#C9A96E] text-[#C9A96E] text-sm font-semibold tracking-widest uppercase hover:bg-[#C9A96E]/10 active:scale-[0.98] transition-all"

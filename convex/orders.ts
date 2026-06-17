@@ -39,6 +39,8 @@ export const create = mutation({
     items: v.array(orderItem),
     shippingAddress: v.optional(v.string()),
     subtotal: v.number(),
+    shippingFee: v.optional(v.number()),
+    shippingZoneName: v.optional(v.string()),
     total: v.number(),
     paymentMethod: v.optional(
       v.union(v.literal("Cash on Delivery"), v.literal("Paystack"), v.literal("Manual"))
@@ -99,5 +101,53 @@ export const markByReference = mutation({
     if (!order) return null;
     await ctx.db.patch(order._id, { paymentStatus: args.paymentStatus });
     return order._id;
+  },
+});
+
+// Import historical orders from Shopify CSV — does NOT decrement stock
+export const bulkImport = mutation({
+  args: {
+    orders: v.array(v.object({
+      orderNumber: v.string(),
+      customer: v.object({ name: v.string(), email: v.string(), phone: v.optional(v.string()) }),
+      items: v.array(v.object({
+        productId: v.string(),
+        title: v.string(),
+        quantity: v.number(),
+        price: v.number(),
+      })),
+      shippingAddress: v.optional(v.string()),
+      subtotal: v.number(),
+      shippingFee: v.optional(v.number()),
+      shippingZoneName: v.optional(v.string()),
+      total: v.number(),
+      paymentMethod: v.optional(
+        v.union(v.literal("Cash on Delivery"), v.literal("Paystack"), v.literal("Manual"))
+      ),
+      paymentStatus: v.union(
+        v.literal("Pending"), v.literal("Paid"), v.literal("Failed"), v.literal("Refunded")
+      ),
+      fulfillmentStatus: v.union(
+        v.literal("Unfulfilled"), v.literal("Fulfilled"), v.literal("Cancelled")
+      ),
+      notes: v.optional(v.string()),
+      paystackReference: v.optional(v.string()),
+    })),
+  },
+  handler: async (ctx, args) => {
+    let created = 0;
+    const errors: string[] = [];
+    for (const o of args.orders) {
+      try {
+        await ctx.db.insert("orders", {
+          ...o,
+          userId: undefined,
+        });
+        created++;
+      } catch (e) {
+        errors.push(`${o.orderNumber}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+    return { created, errors };
   },
 });

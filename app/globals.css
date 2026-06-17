@@ -39,6 +39,13 @@ a {
   color: #1f2937;
 }
 
+/* Admin font-size: bump all text by 1px vs Tailwind defaults */
+.admin-root .text-xs  { font-size: 13px; }
+.admin-root .text-sm  { font-size: 15px; }
+.admin-root .text-base{ font-size: 17px; }
+.admin-root .text-xl  { font-size: 21px; }
+.admin-root .text-2xl { font-size: 25px; }
+
 /* scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

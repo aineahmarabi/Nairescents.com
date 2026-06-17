@@ -317,7 +317,7 @@ export default function ProductDetailPage({ params }: Props) {
             <h2 className="text-white text-2xl font-bold tracking-tight mb-8">
               You may also like
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
               {related.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

@@ -9,6 +9,14 @@ import { useTrackEvent } from "@/lib/analytics";
 
 type Status = "verifying" | "success" | "failed" | "error";
 
+interface OrderSummary {
+  orderNumber: string;
+  subtotal: number;
+  shippingFee?: number;
+  shippingZoneName?: string;
+  total: number;
+}
+
 export default function CheckoutSuccessPage() {
   return (
     <Suspense fallback={null}>
@@ -23,7 +31,7 @@ function CheckoutSuccessContent() {
   const { clearCart } = useCart();
   const track = useTrackEvent();
   const [status, setStatus] = useState<Status>("verifying");
-  const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [order, setOrder] = useState<OrderSummary | null>(null);
 
   useEffect(() => {
     if (!reference) { setStatus("error"); return; }
@@ -32,7 +40,13 @@ function CheckoutSuccessContent() {
       .then((data) => {
         if (data.success) {
           setStatus("success");
-          setOrderNumber(data.order?.orderNumber ?? null);
+          if (data.order) setOrder({
+            orderNumber: data.order.orderNumber,
+            subtotal: data.order.subtotal,
+            shippingFee: data.order.shippingFee,
+            shippingZoneName: data.order.shippingZoneName,
+            total: data.order.total,
+          });
           track("order_placed", { value: data.order?.total });
           clearCart();
         } else {
@@ -53,7 +67,7 @@ function CheckoutSuccessContent() {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-md"
+        className="max-w-md w-full"
       >
         {status === "verifying" && (
           <>
@@ -71,9 +85,29 @@ function CheckoutSuccessContent() {
               </svg>
             </div>
             <h1 className="text-white text-2xl font-bold mb-3">Payment successful!</h1>
-            <p className="text-white/60 text-sm leading-relaxed mb-8">
-              {orderNumber ? `Order ${orderNumber} is confirmed.` : "Your order is confirmed."} We&apos;ll reach out via WhatsApp or email shortly.
+            <p className="text-white/60 text-sm leading-relaxed mb-5">
+              {order ? `Order ${order.orderNumber} is confirmed.` : "Your order is confirmed."} We&apos;ll reach out via WhatsApp or email shortly.
             </p>
+            {order && (
+              <div className="text-left rounded-xl border border-white/10 bg-white/5 p-4 mb-8 space-y-2 text-sm">
+                <div className="flex justify-between text-white/60">
+                  <span>Subtotal</span><span>Ksh {order.subtotal.toLocaleString()}.00</span>
+                </div>
+                <div className="flex justify-between text-white/60">
+                  <span>
+                    Shipping{order.shippingZoneName ? ` — ${order.shippingZoneName.split(",")[0]}` : ""}
+                  </span>
+                  <span>
+                    {(order.shippingFee ?? order.total - order.subtotal) === 0
+                      ? "FREE"
+                      : `Ksh ${(order.shippingFee ?? order.total - order.subtotal).toLocaleString()}.00`}
+                  </span>
+                </div>
+                <div className="flex justify-between text-white font-semibold border-t border-white/10 pt-2">
+                  <span>Total</span><span>Ksh {order.total.toLocaleString()}.00</span>
+                </div>
+              </div>
+            )}
             <Link
               href="/"
               className="inline-block px-8 py-3 rounded-xl border border-[#C9A96E] text-[#C9A96E] text-sm font-semibold tracking-widest uppercase hover:bg-[#C9A96E]/10 active:scale-[0.98] transition-all"

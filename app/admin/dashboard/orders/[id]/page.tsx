@@ -90,9 +90,25 @@ export default function OrderDetailPage() {
                 <p className="font-semibold text-gray-800">KES {(item.quantity * item.price).toLocaleString()}</p>
               </div>
             ))}
-            <div className="pt-3 flex justify-between font-semibold text-gray-900">
-              <span>Total</span>
-              <span>KES {order.total.toLocaleString()}</span>
+            <div className="pt-3 space-y-1.5 border-t border-gray-100 mt-2">
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Subtotal</span>
+                <span>KES {order.subtotal.toLocaleString()}</span>
+              </div>
+              {(() => {
+                const fee = order.shippingFee ?? (order.total - order.subtotal);
+                const zoneName = order.shippingZoneName;
+                return (
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Shipping{zoneName ? ` — ${zoneName.split(",")[0]}` : ""}</span>
+                    <span>{fee === 0 ? "FREE" : `KES ${fee.toLocaleString()}`}</span>
+                  </div>
+                );
+              })()}
+              <div className="flex justify-between font-semibold text-gray-900 pt-1.5 border-t border-gray-100">
+                <span>Total</span>
+                <span>KES {order.total.toLocaleString()}</span>
+              </div>
             </div>
           </div>
 
