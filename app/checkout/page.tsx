@@ -31,7 +31,7 @@ function PayBadge({ src, label }: { src: string; label: string }) {
   return (
     <span
       aria-label={label}
-      className="inline-flex h-[26px] w-[44px] items-center justify-center rounded bg-white ring-1 ring-inset ring-gray-200 p-1 shrink-0"
+      className="inline-flex h-[32px] w-[52px] items-center justify-center rounded bg-white ring-1 ring-inset ring-gray-200 p-1.5 shrink-0"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt={label} className="h-full w-full object-contain" />
