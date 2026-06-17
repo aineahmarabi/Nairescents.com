@@ -6,9 +6,31 @@ import { Id } from "@/convex/_generated/dataModel";
 import { exportToCsv } from "@/lib/csv";
 import Link from "next/link";
 import {
-  Plus, Search, Package, Trash2, Pencil, Upload, Download, Filter,
+  Plus, Search, Package, Trash2, Pencil, Upload, Download, Filter, ArrowUp, ArrowDown,
 } from "lucide-react";
 import { SkeletonTable } from "@/components/admin/ui/Skeleton";
+
+function SortHeader({ col, label, current, dir, cls, onSort }: {
+  col: string; label: string; current: string; dir: "asc" | "desc"; cls?: string;
+  onSort: (c: string) => void;
+}) {
+  const active = col === current;
+  return (
+    <th className={`text-left px-4 py-3 text-xs font-semibold text-gray-500 ${cls ?? ""}`}>
+      <button
+        onClick={() => onSort(col)}
+        className="inline-flex items-center gap-1 hover:text-gray-800 transition-colors"
+      >
+        {label}
+        {active ? (
+          dir === "asc" ? <ArrowUp className="w-3 h-3 text-[#C9A96E]" /> : <ArrowDown className="w-3 h-3 text-[#C9A96E]" />
+        ) : (
+          <ArrowDown className="w-3 h-3 text-gray-300" />
+        )}
+      </button>
+    </th>
+  );
+}
 
 export default function AdminProductsPage() {
   const products = useQuery(api.products.list, {});
@@ -18,13 +40,32 @@ export default function AdminProductsPage() {
   const [statusFilter, setStatusFilter] = useState<"" | "Active" | "Draft">("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [sortCol, setSortCol] = useState<"title" | "status" | "inventory" | "category" | "vendor" | "price" | "date">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  const filtered = (products ?? []).filter((p) => {
-    const q = search.toLowerCase();
-    const matchSearch = !q || p.title.toLowerCase().includes(q) || (p.vendor ?? "").toLowerCase().includes(q) || (p.sku ?? "").toLowerCase().includes(q);
-    const matchStatus = !statusFilter || p.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+  const filtered = (products ?? [])
+    .filter((p) => {
+      const q = search.toLowerCase();
+      const matchSearch = !q || p.title.toLowerCase().includes(q) || (p.vendor ?? "").toLowerCase().includes(q) || (p.sku ?? "").toLowerCase().includes(q);
+      const matchStatus = !statusFilter || p.status === statusFilter;
+      return matchSearch && matchStatus;
+    })
+    .sort((a, b) => {
+      let va: string | number = 0;
+      let vb: string | number = 0;
+      switch (sortCol) {
+        case "title": va = a.title.toLowerCase(); vb = b.title.toLowerCase(); break;
+        case "status": va = a.status; vb = b.status; break;
+        case "inventory": va = a.trackInventory ? a.inventory : -1; vb = b.trackInventory ? b.inventory : -1; break;
+        case "category": va = (a.category ?? a.gender ?? "").toLowerCase(); vb = (b.category ?? b.gender ?? "").toLowerCase(); break;
+        case "vendor": va = (a.vendor ?? "").toLowerCase(); vb = (b.vendor ?? "").toLowerCase(); break;
+        case "price": va = a.price; vb = b.price; break;
+        case "date": va = a._creationTime; vb = b._creationTime; break;
+      }
+      if (va < vb) return sortDir === "asc" ? -1 : 1;
+      if (va > vb) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
 
   function toggleSelect(id: string) {
     setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -33,6 +74,11 @@ export default function AdminProductsPage() {
   function toggleAll() {
     if (selected.size === filtered.length) setSelected(new Set());
     else setSelected(new Set(filtered.map((p) => p._id)));
+  }
+
+  function handleSort(col: string) {
+    if (col === sortCol) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortCol(col as typeof sortCol); setSortDir("asc"); }
   }
 
   async function handleDelete(id: Id<"products">) {
@@ -148,17 +194,14 @@ export default function AdminProductsPage() {
                   <input type="checkbox" checked={selected.size === filtered.length && filtered.length > 0}
                     onChange={toggleAll} className="rounded accent-[#C9A96E]" />
                 </th>
-                {[
-                  { label: "Product", cls: "" },
-                  { label: "Status", cls: "" },
-                  { label: "Inventory", cls: "hidden sm:table-cell" },
-                  { label: "Category", cls: "hidden md:table-cell" },
-                  { label: "Vendor", cls: "hidden lg:table-cell" },
-                  { label: "Price", cls: "" },
-                  { label: "", cls: "" },
-                ].map((h) => (
-                  <th key={h.label} className={`text-left px-4 py-3 text-xs font-semibold text-gray-500 ${h.cls}`}>{h.label}</th>
-                ))}
+                <SortHeader col="title" label="Product" current={sortCol} dir={sortDir} onSort={handleSort} />
+                <SortHeader col="status" label="Status" current={sortCol} dir={sortDir} onSort={handleSort} />
+                <SortHeader col="inventory" label="Inventory" current={sortCol} dir={sortDir} onSort={handleSort} cls="hidden sm:table-cell" />
+                <SortHeader col="category" label="Category" current={sortCol} dir={sortDir} onSort={handleSort} cls="hidden md:table-cell" />
+                <SortHeader col="vendor" label="Vendor" current={sortCol} dir={sortDir} onSort={handleSort} cls="hidden lg:table-cell" />
+                <SortHeader col="price" label="Price" current={sortCol} dir={sortDir} onSort={handleSort} />
+                <SortHeader col="date" label="Date" current={sortCol} dir={sortDir} onSort={handleSort} cls="hidden xl:table-cell" />
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -198,6 +241,9 @@ export default function AdminProductsPage() {
                   <td className="px-4 py-3 font-medium text-gray-800">
                     KES {p.price.toLocaleString()}
                     {p.compareAtPrice && <span className="line-through text-gray-300 text-xs ml-1">{p.compareAtPrice.toLocaleString()}</span>}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-400 hidden xl:table-cell">
+                    {new Date(p._creationTime).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 justify-end">

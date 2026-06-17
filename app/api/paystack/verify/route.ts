@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { sendOrderEmail } from "@/lib/email";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -23,6 +24,22 @@ export async function GET(req: NextRequest) {
   }).catch(() => {});
 
   const order = await convex.query(api.orders.getByReference, { reference }).catch(() => null);
+
+  if (success && order) {
+    sendOrderEmail({
+      orderNumber: order.orderNumber,
+      customer: order.customer,
+      items: order.items,
+      shippingAddress: order.shippingAddress,
+      shippingZoneName: order.shippingZoneName,
+      subtotal: order.subtotal,
+      shippingFee: order.shippingFee,
+      total: order.total,
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      fulfillmentStatus: order.fulfillmentStatus,
+    }, "new_order").catch((e) => console.error("[notify] Paystack order email failed:", e));
+  }
 
   return NextResponse.json({ success, order });
 }

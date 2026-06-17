@@ -41,6 +41,11 @@ export default function ContactPage() {
         phone: form.phone || undefined,
         comment: form.comment,
       });
+      fetch("/api/notify/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone || undefined, comment: form.comment }),
+      }).catch(() => {});
       setSent(true);
       setForm({ name: "", email: "", phone: "", comment: "" });
     } catch (err) {

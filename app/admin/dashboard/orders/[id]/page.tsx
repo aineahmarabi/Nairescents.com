@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Skeleton } from "@/components/admin/ui/Skeleton";
 
@@ -24,8 +24,11 @@ export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const order = useQuery(api.orders.get, { id: id as Id<"orders"> });
   const updateStatus = useMutation(api.orders.updateStatus);
+  const removeOrder = useMutation(api.orders.remove);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const router = useRouter();
 
   async function saveStatus(field: "paymentStatus" | "fulfillmentStatus", val: string) {
     if (!order) return;
@@ -33,6 +36,13 @@ export default function OrderDetailPage() {
     await updateStatus({ id: order._id, [field]: val } as never).catch(() => {});
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+    if (field === "fulfillmentStatus" && val === "Fulfilled") {
+      fetch("/api/notify/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: String(order._id), trigger: "fulfilled" }),
+      }).catch(() => {});
+    }
   }
 
   if (order === undefined) return (
@@ -143,8 +153,41 @@ export default function OrderDetailPage() {
             <p>Created: {new Date(order._creationTime).toLocaleString("en-GB")}</p>
             {order.paystackReference && <p>Reference: {order.paystackReference}</p>}
           </div>
+          <button
+            onClick={() => setShowDelete(true)}
+            className="w-full flex items-center justify-center gap-2 text-sm text-red-400 hover:text-red-600 hover:bg-red-50 py-2 px-4 rounded-xl border border-red-100 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Delete order
+          </button>
         </div>
       </div>
+      {showDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full space-y-4">
+            <h3 className="font-bold text-gray-900">Delete {order.orderNumber}?</h3>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              This permanently deletes this order. This cannot be undone. If you want to restore stock first, cancel the order before deleting it.
+            </p>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowDelete(false)}
+                className="flex-1 py-2.5 text-sm font-medium border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Keep order
+              </button>
+              <button
+                onClick={async () => {
+                  await removeOrder({ id: order._id });
+                  router.push("/admin/dashboard/orders");
+                }}
+                className="flex-1 py-2.5 text-sm font-semibold bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
+              >
+                Delete permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

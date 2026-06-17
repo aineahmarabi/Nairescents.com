@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { MessageSquare, Mail, Phone, Clock, MessageCircle } from "lucide-react";
+import { MessageSquare, Mail, Phone, Clock, MessageCircle, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/admin/ui/Skeleton";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -21,7 +21,9 @@ function formatDate(ts: number) {
 export default function AdminMessagesPage() {
   const messages = useQuery(api.messages.list);
   const setStatus = useMutation(api.messages.setStatus);
+  const removeMessage = useMutation(api.messages.remove);
   const [selectedId, setSelectedId] = useState<Id<"contactSubmissions"> | null>(null);
+  const [showDeleteId, setShowDeleteId] = useState<Id<"contactSubmissions"> | null>(null);
 
   const selected = messages?.find((m) => m._id === selectedId) ?? null;
 
@@ -32,6 +34,37 @@ export default function AdminMessagesPage() {
 
   return (
     <div className="space-y-5">
+      {showDeleteId && (() => {
+        const msg = messages?.find(m => m._id === showDeleteId);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full space-y-4">
+              <h3 className="font-bold text-gray-900">Delete this message?</h3>
+              <p className="text-sm text-gray-500">
+                Message from <strong>{msg?.name}</strong> will be permanently deleted. This cannot be undone.
+              </p>
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowDeleteId(null)}
+                  className="flex-1 py-2.5 text-sm font-medium border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    await removeMessage({ id: showDeleteId });
+                    if (selectedId === showDeleteId) setSelectedId(null);
+                    setShowDeleteId(null);
+                  }}
+                  className="flex-1 py-2.5 text-sm font-semibold bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Messages</h1>
         <div className="text-sm text-gray-400">{messages?.length ?? 0} total</div>
@@ -115,6 +148,12 @@ export default function AdminMessagesPage() {
               </div>
 
               <div className="flex items-center gap-2 flex-wrap pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => setShowDeleteId(selected._id)}
+                  className="px-4 py-2 text-sm font-medium border border-red-100 rounded-xl text-red-400 hover:bg-red-50 transition-colors"
+                >
+                  Delete
+                </button>
                 <button
                   onClick={() => setStatus({ id: selected._id, status: "read" })}
                   disabled={selected.status === "read"}

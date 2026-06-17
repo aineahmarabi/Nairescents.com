@@ -151,3 +151,8 @@ export const bulkImport = mutation({
     return { created, errors };
   },
 });
+
+export const remove = mutation({
+  args: { id: v.id("orders") },
+  handler: async (ctx, args) => ctx.db.delete(args.id),
+});

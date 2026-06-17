@@ -43,3 +43,8 @@ export const setStatus = mutation({
   },
   handler: async (ctx, args) => ctx.db.patch(args.id, { status: args.status }),
 });
+
+export const remove = mutation({
+  args: { id: v.id("contactSubmissions") },
+  handler: async (ctx, args) => ctx.db.delete(args.id),
+});

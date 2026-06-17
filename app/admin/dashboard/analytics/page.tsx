@@ -193,6 +193,8 @@ interface AnalyticsData {
 export default function AdminAnalyticsPage() {
   const [range, setRange] = useState<RangeKey>("Last 7 days");
   const [lastRefreshed, setLastRefreshed] = useState<string>("");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
 
   useEffect(() => {
     const d = new Date();
@@ -201,7 +203,15 @@ export default function AdminAnalyticsPage() {
     );
   }, []);
 
-  const bounds = useMemo(() => getRangeBounds(range), [range]);
+  const bounds = useMemo(() => {
+    if (range === "Custom" && customFrom && customTo) {
+      const from = new Date(customFrom);
+      const to = new Date(customTo);
+      if (from > to) return getRangeBounds("Last 7 days");
+      return getRangeBounds("Custom", { from, to });
+    }
+    return getRangeBounds(range);
+  }, [range, customFrom, customTo]);
 
   const orders = useQuery(api.orders.list);
   const events = useQuery(api.analytics.eventsSince, { since: bounds.prevStart });
@@ -583,6 +593,27 @@ export default function AdminAnalyticsPage() {
               <option key={r}>{r}</option>
             ))}
           </select>
+          {range === "Custom" && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="date"
+                value={customFrom}
+                onChange={e => setCustomFrom(e.target.value)}
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]/30 bg-white"
+              />
+              <span className="text-gray-400 text-sm">to</span>
+              <input
+                type="date"
+                value={customTo}
+                onChange={e => setCustomTo(e.target.value)}
+                min={customFrom}
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]/30 bg-white"
+              />
+              {customFrom && customTo && new Date(customFrom) > new Date(customTo) && (
+                <span className="text-red-400 text-xs">Start must be before end</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

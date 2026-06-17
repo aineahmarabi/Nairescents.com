@@ -152,6 +152,11 @@ export default function CheckoutPage() {
     setOrderPlaced(true);
     track("order_placed", { value: total });
     clearCart();
+    fetch("/api/notify/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: String(orderId), trigger: "new_order" }),
+    }).catch(() => {});
   }
 
   /* ── success screen ── */
