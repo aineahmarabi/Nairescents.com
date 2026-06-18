@@ -42,7 +42,7 @@ export default function AdminDashboardPage() {
 
   const totalProducts = products?.length ?? 0;
   const activeProducts = products?.filter((p) => p.status === "Active").length ?? 0;
-  const lowStock = products?.filter((p) => p.inventory === 0 && p.trackInventory).length ?? 0;
+  const lowStock = products?.filter((p) => p.inventory === 0 && p.trackInventory && !p.sellWhenOutOfStock).length ?? 0;
 
   const loading = products === undefined;
 

@@ -110,7 +110,7 @@ export default function AdminProductsPage() {
   const total = products?.length ?? 0;
   const active = products?.filter((p) => p.status === "Active").length ?? 0;
   const draft = products?.filter((p) => p.status === "Draft").length ?? 0;
-  const lowStock = products?.filter((p) => p.inventory === 0).length ?? 0;
+  const lowStock = products?.filter((p) => p.inventory === 0 && p.trackInventory && !p.sellWhenOutOfStock).length ?? 0;
 
   return (
     <div>
