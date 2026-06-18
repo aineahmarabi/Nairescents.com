@@ -16,7 +16,7 @@ function mapProduct(p: {
   _id: string; handle?: string; title: string; descriptionHtml: string;
   price: number; compareAtPrice?: number; images: { url: string }[];
   brand?: string; gender?: string; whenToWear: string[]; size?: string;
-  sku?: string; inventory: number; trackInventory: boolean; inStock: boolean;
+  sku?: string; inventory: number; trackInventory: boolean; inStock: boolean; sellWhenOutOfStock: boolean;
   status: "Active" | "Draft"; tags: string[];
 }) {
   return {
