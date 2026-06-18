@@ -63,7 +63,7 @@ export default function BestSellersSection() {
 
         {products === undefined ? (
           /* Loading skeleton */
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-10">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex flex-col gap-3 animate-pulse">
                 <div className="aspect-[3/4] rounded-xl bg-white/5" />
@@ -83,7 +83,7 @@ export default function BestSellersSection() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-10"
           >
             {mapped.map((p) => (
               <motion.div key={p.id} variants={item}>
