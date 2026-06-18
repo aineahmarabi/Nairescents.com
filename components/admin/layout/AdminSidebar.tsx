@@ -52,6 +52,7 @@ interface Props { isMobileOpen: boolean; onClose: () => void; }
 export default function AdminSidebar({ isMobileOpen, onClose }: Props) {
   const { signOut } = useClerk();
   const unreadMessages = useQuery(api.messages.unreadCount);
+  const newOrders = useQuery(api.orders.newCount);
 
   function handleLogout() {
     signOut({ redirectUrl: "/admin/login" });
@@ -72,7 +73,7 @@ export default function AdminSidebar({ isMobileOpen, onClose }: Props) {
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV.map(n => <NavItem key={n.href} {...n} onClick={onClose} badge={n.label === "Messages" ? unreadMessages : undefined} />)}
+        {NAV.map(n => <NavItem key={n.href} {...n} onClick={onClose} badge={n.label === "Messages" ? unreadMessages : n.label === "Orders" ? newOrders : undefined} />)}
 
         <div className="pt-4 pb-1">
           <p className="px-3 text-[10px] text-white/20 tracking-wider uppercase font-semibold mb-1">Marketing</p>

@@ -19,6 +19,16 @@ export const list = query({
   },
 });
 
+export const newCount = query({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("orders").collect();
+    return all.filter(
+      (o) => o.fulfillmentStatus === "Unfulfilled" && o.paymentStatus !== "Failed" && o.paymentStatus !== "Refunded"
+    ).length;
+  },
+});
+
 export const get = query({
   args: { id: v.id("orders") },
   handler: async (ctx, args) => ctx.db.get(args.id),
