@@ -16,7 +16,6 @@ export default function ProductCard({ product }: Props) {
   const img = product.images?.[0];
 
   function handleAddToCart() {
-    if (!product.inStock) return;
     addItem({
       productId: product.id,
       title: product.title,
@@ -47,8 +46,8 @@ export default function ProductCard({ product }: Props) {
               </div>
             )}
             {!product.inStock && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <span className="text-white/60 text-xs tracking-widest uppercase">Sold Out</span>
+              <div className="absolute top-2 right-2">
+                <span className="bg-[#C9A96E]/20 text-[#C9A96E] text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border border-[#C9A96E]/30">Pre-order</span>
               </div>
             )}
             {product.tags?.newIn && (
@@ -99,14 +98,9 @@ export default function ProductCard({ product }: Props) {
 
       <button
         onClick={handleAddToCart}
-        disabled={!product.inStock}
-        className={`mt-3 w-full py-2.5 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all ${
-          product.inStock
-            ? "border border-[#C9A96E]/40 text-[#C9A96E] hover:bg-[#C9A96E]/10 active:scale-[0.98]"
-            : "border border-white/10 text-white/20 cursor-not-allowed"
-        }`}
+        className="mt-3 w-full py-2.5 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all border border-[#C9A96E]/40 text-[#C9A96E] hover:bg-[#C9A96E]/10 active:scale-[0.98]"
       >
-        {product.inStock ? "Add to Cart" : "Sold Out"}
+        {product.inStock ? "Add to Cart" : "Pre-order"}
       </button>
     </motion.div>
   );
