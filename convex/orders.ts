@@ -188,3 +188,29 @@ export const remove = mutation({
   args: { id: v.id("orders") },
   handler: async (ctx, args) => ctx.db.delete(args.id),
 });
+
+export const removeWithInventoryRestore = mutation({
+  args: {
+    id: v.id("orders"),
+    restoreInventory: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const order = await ctx.db.get(args.id);
+    if (!order) return;
+
+    if (args.restoreInventory) {
+      for (const item of order.items) {
+        const product = await ctx.db.get(item.productId as Id<"products">);
+        if (!product || !product.trackInventory) continue;
+
+        const newInventory = product.inventory + item.quantity;
+        // Auto-sync inStock: if inventory is positive again, mark back in stock
+        const patch: { inventory: number; inStock?: boolean } = { inventory: newInventory };
+        if (newInventory > 0) patch.inStock = true;
+        await ctx.db.patch(product._id, patch);
+      }
+    }
+
+    await ctx.db.delete(args.id);
+  },
+});

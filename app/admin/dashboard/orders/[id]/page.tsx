@@ -24,10 +24,11 @@ export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const order = useQuery(api.orders.get, { id: id as Id<"orders"> });
   const updateStatus = useMutation(api.orders.updateStatus);
-  const removeOrder = useMutation(api.orders.remove);
+  const removeOrder = useMutation(api.orders.removeWithInventoryRestore);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const router = useRouter();
 
   async function saveStatus(field: "paymentStatus" | "fulfillmentStatus", val: string) {
@@ -166,23 +167,37 @@ export default function OrderDetailPage() {
           <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full space-y-4">
             <h3 className="font-bold text-gray-900">Delete {order.orderNumber}?</h3>
             <p className="text-sm text-gray-500 leading-relaxed">
-              This permanently deletes this order. This cannot be undone. If you want to restore stock first, cancel the order before deleting it.
+              Were the items in this order returned to stock? Choose how to handle inventory before deleting.
             </p>
-            <div className="flex gap-3 pt-2">
+            <div className="space-y-2 pt-1">
               <button
-                onClick={() => setShowDelete(false)}
-                className="flex-1 py-2.5 text-sm font-medium border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Keep order
-              </button>
-              <button
+                disabled={deleting}
                 onClick={async () => {
-                  await removeOrder({ id: order._id });
+                  setDeleting(true);
+                  await removeOrder({ id: order._id, restoreInventory: true });
                   router.push("/admin/dashboard/orders");
                 }}
-                className="flex-1 py-2.5 text-sm font-semibold bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
+                className="w-full py-2.5 text-sm font-semibold bg-[#0B3D33] text-white rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                Delete permanently
+                Delete + Restore inventory
+              </button>
+              <button
+                disabled={deleting}
+                onClick={async () => {
+                  setDeleting(true);
+                  await removeOrder({ id: order._id, restoreInventory: false });
+                  router.push("/admin/dashboard/orders");
+                }}
+                className="w-full py-2.5 text-sm font-semibold bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50"
+              >
+                Delete without restoring
+              </button>
+              <button
+                disabled={deleting}
+                onClick={() => setShowDelete(false)}
+                className="w-full py-2.5 text-sm font-medium border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Keep order
               </button>
             </div>
           </div>
