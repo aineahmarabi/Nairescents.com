@@ -78,9 +78,13 @@ export const create = mutation({
       });
     }
 
-    // Insert order
-    const count = (await ctx.db.query("orders").collect()).length;
-    const orderNumber = `#${1000 + count + 1}`;
+    // Insert order — derive next number from highest existing order number
+    const allOrders = await ctx.db.query("orders").collect();
+    const maxNum = allOrders.reduce((max, o) => {
+      const n = parseInt(o.orderNumber.replace(/[^0-9]/g, ""), 10);
+      return isNaN(n) ? max : Math.max(max, n);
+    }, 1000);
+    const orderNumber = `#NS${maxNum + 1}`;
     const orderId = await ctx.db.insert("orders", {
       ...rest,
       orderNumber,
