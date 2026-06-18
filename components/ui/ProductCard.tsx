@@ -47,7 +47,7 @@ export default function ProductCard({ product }: Props) {
             )}
             {!product.inStock && (
               <div className="absolute top-2 right-2">
-                <span className="bg-[#C9A96E]/20 text-[#C9A96E] text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border border-[#C9A96E]/30">Pre-order</span>
+                <span className="bg-black/60 text-white/80 text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border border-white/20">Out of Stock</span>
               </div>
             )}
             {product.tags?.newIn && (
