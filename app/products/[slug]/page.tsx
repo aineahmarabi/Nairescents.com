@@ -32,6 +32,7 @@ function toProductCard(p: any): Product {
     inventory: p.inventory ?? 0,
     trackInventory: p.trackInventory ?? false,
     inStock: p.inStock ?? true,
+    sellWhenOutOfStock: p.sellWhenOutOfStock ?? false,
     status: p.status as "Active" | "Draft",
     tags: {
       bestSeller: p.tags.includes("Best Seller"),
@@ -113,15 +114,17 @@ export default function ProductDetailPage({ params }: Props) {
 
   const img = product!.images?.[0];
 
+  const canBuy = !!product && (product.inStock || product.sellWhenOutOfStock);
+
   function handleAddToCart() {
-    if (!product || !product.inStock) return;
-    addItem({ productId: product.id, title: product.title, price: product.price, imageUrl: img, quantity: qty });
+    if (!canBuy) return;
+    addItem({ productId: product!.id, title: product!.title, price: product!.price, imageUrl: img, quantity: qty });
     if (imgRef.current) triggerFly(img ?? "", imgRef.current.getBoundingClientRect());
   }
 
   function handleBuyNow() {
-    if (!product || !product.inStock) return;
-    addItem({ productId: product.id, title: product.title, price: product.price, imageUrl: img, quantity: qty });
+    if (!canBuy) return;
+    addItem({ productId: product!.id, title: product!.title, price: product!.price, imageUrl: img, quantity: qty });
     router.push("/checkout");
   }
 
@@ -162,7 +165,7 @@ export default function ProductDetailPage({ params }: Props) {
                   <span className="text-white/10 text-5xl">✦</span>
                 </div>
               )}
-              {!product!.inStock && (
+              {!product!.inStock && !product!.sellWhenOutOfStock && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <span className="text-white/60 text-sm tracking-widest uppercase">Sold Out</span>
                 </div>
@@ -254,25 +257,25 @@ export default function ProductDetailPage({ params }: Props) {
               {/* Add to Cart — outlined button */}
               <button
                 onClick={handleAddToCart}
-                disabled={!product!.inStock}
+                disabled={!canBuy}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold tracking-widest uppercase transition-all ${
-                  product!.inStock
+                  canBuy
                     ? "border border-[#C9A96E]/50 text-[#C9A96E] hover:bg-[#C9A96E]/10 active:scale-[0.98]"
                     : "border border-white/10 text-white/20 cursor-not-allowed"
                 }`}
               >
                 <ShoppingBag size={16} strokeWidth={1.5} />
-                {product!.inStock ? "Add to Cart" : "Sold Out"}
+                {product!.inStock ? "Add to Cart" : product!.sellWhenOutOfStock ? "Pre-order" : "Sold Out"}
               </button>
             </div>
 
             {/* Buy it now — solid gold button */}
-            {product!.inStock && (
+            {canBuy && (
               <button
                 onClick={handleBuyNow}
                 className="px-8 py-3 rounded-xl bg-[#C9A96E] text-[#0B3D33] text-sm font-bold tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all"
               >
-                Buy it now
+                {product!.inStock ? "Buy it now" : "Pre-order now"}
               </button>
             )}
 

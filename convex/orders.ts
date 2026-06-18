@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 const orderItem = v.object({
   productId: v.string(),
@@ -56,14 +57,51 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const { paymentStatus, fulfillmentStatus, ...rest } = args;
+
+    // Validate inventory and collect updates
+    const inventoryUpdates: Array<{
+      id: Id<"products">;
+      newInventory: number;
+      markOutOfStock: boolean;
+    }> = [];
+
+    for (const item of args.items) {
+      const product = await ctx.db.get(item.productId as Id<"products">);
+      if (!product || !product.trackInventory) continue;
+
+      if (product.inventory < item.quantity && !product.sellWhenOutOfStock) {
+        throw new Error(
+          `"${item.title}" only has ${product.inventory} unit(s) in stock.`
+        );
+      }
+
+      const newInventory = product.inventory - item.quantity;
+      inventoryUpdates.push({
+        id: product._id,
+        newInventory,
+        // Only flip inStock=false when we're not allowed to oversell and stock hits 0
+        markOutOfStock: newInventory <= 0 && !product.sellWhenOutOfStock,
+      });
+    }
+
+    // Insert order
     const count = (await ctx.db.query("orders").collect()).length;
     const orderNumber = `#${1000 + count + 1}`;
-    return ctx.db.insert("orders", {
+    const orderId = await ctx.db.insert("orders", {
       ...rest,
       orderNumber,
       paymentStatus: paymentStatus ?? "Pending",
       fulfillmentStatus: fulfillmentStatus ?? "Unfulfilled",
     });
+
+    // Decrement inventory atomically in the same mutation
+    for (const { id, newInventory, markOutOfStock } of inventoryUpdates) {
+      const patch: { inventory: number; inStock?: boolean } = { inventory: newInventory };
+      if (markOutOfStock) patch.inStock = false;
+      await ctx.db.patch(id, patch);
+    }
+
+    return orderId;
   },
 });
 

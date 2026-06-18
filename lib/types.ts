@@ -23,6 +23,7 @@ export interface Product {
   inventory: number;
   trackInventory: boolean;
   inStock: boolean;
+  sellWhenOutOfStock: boolean;
   status: 'Active' | 'Draft';
   tags: { bestSeller: boolean; featured: boolean; newIn: boolean };
   createdAt: string;
