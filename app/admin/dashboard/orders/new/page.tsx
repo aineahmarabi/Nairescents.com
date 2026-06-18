@@ -173,7 +173,7 @@ export default function NewOrderPage() {
                     <button onClick={() => updateQty(l.productId, -1)} className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600">
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span className="text-sm font-medium w-6 text-center">{l.quantity}</span>
+                    <span className="text-sm font-medium w-6 text-center text-gray-800">{l.quantity}</span>
                     <button onClick={() => updateQty(l.productId, 1)} className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600">
                       <Plus className="w-4 h-4" />
                     </button>
