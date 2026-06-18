@@ -188,6 +188,23 @@ export const bulkImport = mutation({
   },
 });
 
+// One-time migration: add #NS prefix to any order numbers missing it
+export const fixOrderNumberPrefix = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("orders").collect();
+    let fixed = 0;
+    for (const o of all) {
+      if (!o.orderNumber.startsWith("#NS")) {
+        const digits = o.orderNumber.replace(/[^0-9]/g, "");
+        await ctx.db.patch(o._id, { orderNumber: `#NS${digits}` });
+        fixed++;
+      }
+    }
+    return { fixed };
+  },
+});
+
 export const remove = mutation({
   args: { id: v.id("orders") },
   handler: async (ctx, args) => ctx.db.delete(args.id),
