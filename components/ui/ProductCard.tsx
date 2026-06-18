@@ -37,7 +37,7 @@ export default function ProductCard({ product }: Props) {
         <Link href={href} className="flex flex-col">
           <div ref={imgRef} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/8 mb-3">
             {img ? (
-              <Image src={img} alt={product.title} fill className="object-cover" sizes="(max-width: 640px) 50vw, 25vw" />
+              <Image src={img} alt={product.title} fill className="object-contain" sizes="(max-width: 640px) 50vw, 25vw" />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center">
@@ -68,7 +68,7 @@ export default function ProductCard({ product }: Props) {
         <>
           <div ref={imgRef} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/8 mb-3">
             {img ? (
-              <Image src={img} alt={product.title} fill className="object-cover" sizes="(max-width: 640px) 50vw, 25vw" />
+              <Image src={img} alt={product.title} fill className="object-contain" sizes="(max-width: 640px) 50vw, 25vw" />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center">
