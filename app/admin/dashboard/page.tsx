@@ -19,7 +19,7 @@ export default function AdminDashboardPage() {
   const { user } = useUser();
   const products = useQuery(api.products.list, {});
   const settings = useQuery(api.settings.getAll);
-  const [range, setRange] = useState<RangeKey>("Last 7 days");
+  const [range, setRange] = useState<RangeKey>("Today");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [dateError, setDateError] = useState("");
