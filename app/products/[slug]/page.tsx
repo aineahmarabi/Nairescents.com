@@ -165,11 +165,6 @@ export default function ProductDetailPage({ params }: Props) {
                   <span className="text-white/10 text-5xl">✦</span>
                 </div>
               )}
-              {!product!.inStock && !product!.sellWhenOutOfStock && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <span className="text-white/60 text-sm tracking-widest uppercase">Sold Out</span>
-                </div>
-              )}
               {product!.tags?.newIn && (
                 <span className="absolute top-4 left-4 bg-[#C9A96E] text-[#0B3D33] text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-full">
                   New
@@ -265,7 +260,7 @@ export default function ProductDetailPage({ params }: Props) {
                 }`}
               >
                 <ShoppingBag size={16} strokeWidth={1.5} />
-                {product!.inStock ? "Add to Cart" : product!.sellWhenOutOfStock ? "Pre-order" : "Sold Out"}
+                Add to Cart
               </button>
             </div>
 
@@ -275,7 +270,7 @@ export default function ProductDetailPage({ params }: Props) {
                 onClick={handleBuyNow}
                 className="px-8 py-3 rounded-xl bg-[#C9A96E] text-[#0B3D33] text-sm font-bold tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all"
               >
-                {product!.inStock ? "Buy it now" : "Pre-order now"}
+                Buy it now
               </button>
             )}
 

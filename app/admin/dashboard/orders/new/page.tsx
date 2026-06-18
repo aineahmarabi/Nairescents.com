@@ -170,12 +170,12 @@ export default function NewOrderPage() {
                       <p className="text-sm font-medium text-gray-800 truncate">{l.title}</p>
                       <p className="text-xs text-gray-400">KES {l.price.toLocaleString()} each</p>
                     </div>
-                    <button onClick={() => updateQty(l.productId, -1)} className="p-1 rounded-lg border border-gray-200 hover:bg-gray-50">
-                      <Minus className="w-3 h-3" />
+                    <button onClick={() => updateQty(l.productId, -1)} className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600">
+                      <Minus className="w-4 h-4" />
                     </button>
-                    <span className="text-sm font-medium w-5 text-center">{l.quantity}</span>
-                    <button onClick={() => updateQty(l.productId, 1)} className="p-1 rounded-lg border border-gray-200 hover:bg-gray-50">
-                      <Plus className="w-3 h-3" />
+                    <span className="text-sm font-medium w-6 text-center">{l.quantity}</span>
+                    <button onClick={() => updateQty(l.productId, 1)} className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600">
+                      <Plus className="w-4 h-4" />
                     </button>
                     <button onClick={() => removeLine(l.productId)} className="p-1 rounded-lg text-red-400 hover:bg-red-50">
                       <Trash2 className="w-3.5 h-3.5" />

@@ -369,8 +369,8 @@ export default function ProductForm({ initial }: Props) {
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500">Track inventory</span>
                 <button type="button" onClick={() => set("trackInventory", !form.trackInventory)}
-                  className={`relative w-9 h-5 rounded-full transition-colors ${form.trackInventory ? "bg-[#0B3D33]" : "bg-gray-200"}`}>
-                  <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.trackInventory ? "translate-x-4" : "translate-x-0.5"}`} />
+                  className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none ${form.trackInventory ? "bg-[#0B3D33]" : "bg-gray-300"}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${form.trackInventory ? "translate-x-6" : "translate-x-0"}`} />
                 </button>
               </div>
             </label>
@@ -543,8 +543,8 @@ export default function ProductForm({ initial }: Props) {
                   <p className="text-[11px] text-gray-400 mt-0.5">{form.publishedOnlineStore ? "Visible" : "Hidden"}</p>
                 </div>
                 <button type="button" onClick={() => set("publishedOnlineStore", !form.publishedOnlineStore)}
-                  className={`relative w-9 h-5 rounded-full transition-colors ${form.publishedOnlineStore ? "bg-[#0B3D33]" : "bg-gray-200"}`}>
-                  <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.publishedOnlineStore ? "translate-x-4" : "translate-x-0.5"}`} />
+                  className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none ${form.publishedOnlineStore ? "bg-[#0B3D33]" : "bg-gray-300"}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${form.publishedOnlineStore ? "translate-x-6" : "translate-x-0"}`} />
                 </button>
               </div>
               <div className="flex items-center justify-between mt-3">

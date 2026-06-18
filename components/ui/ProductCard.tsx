@@ -45,11 +45,6 @@ export default function ProductCard({ product }: Props) {
                 </div>
               </div>
             )}
-            {!product.inStock && (
-              <div className="absolute top-2 right-2">
-                <span className="bg-black/60 text-white/80 text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border border-white/20">Out of Stock</span>
-              </div>
-            )}
             {product.tags?.newIn && (
               <span className="absolute top-2 left-2 bg-[#C9A96E] text-[#0B3D33] text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full">New</span>
             )}
@@ -100,7 +95,7 @@ export default function ProductCard({ product }: Props) {
         onClick={handleAddToCart}
         className="mt-3 w-full py-2.5 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all border border-[#C9A96E]/40 text-[#C9A96E] hover:bg-[#C9A96E]/10 active:scale-[0.98]"
       >
-        {product.inStock ? "Add to Cart" : "Pre-order"}
+        Add to Cart
       </button>
     </motion.div>
   );
