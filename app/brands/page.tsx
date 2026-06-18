@@ -30,6 +30,7 @@ function toProductCard(p: any): Product {
     inventory: p.inventory ?? 0,
     trackInventory: p.trackInventory ?? false,
     inStock: p.inStock ?? true,
+    sellWhenOutOfStock: p.sellWhenOutOfStock ?? false,
     status: p.status as "Active" | "Draft",
     tags: {
       bestSeller: p.tags.includes("Best Seller"),

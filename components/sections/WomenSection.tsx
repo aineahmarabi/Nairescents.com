@@ -35,6 +35,7 @@ function mapProduct(p: {
     inventory: p.inventory ?? 0,
     trackInventory: p.trackInventory ?? false,
     inStock: p.inStock ?? true,
+    sellWhenOutOfStock: p.sellWhenOutOfStock ?? false,
     status: p.status,
     tags: {
       bestSeller: p.tags.includes("Best Seller"),
