@@ -114,7 +114,7 @@ export default function ProductDetailPage({ params }: Props) {
 
   const img = product!.images?.[0];
 
-  const canBuy = !!product && (product.inStock || product.sellWhenOutOfStock);
+  const canBuy = !!product;
 
   function handleAddToCart() {
     if (!canBuy) return;

@@ -69,17 +69,11 @@ export const create = mutation({
       const product = await ctx.db.get(item.productId as Id<"products">);
       if (!product || !product.trackInventory) continue;
 
-      if (product.inventory < item.quantity && !product.sellWhenOutOfStock) {
-        throw new Error(
-          `"${item.title}" only has ${product.inventory} unit(s) in stock.`
-        );
-      }
-
       const newInventory = product.inventory - item.quantity;
       inventoryUpdates.push({
         id: product._id,
         newInventory,
-        // Only flip inStock=false when we're not allowed to oversell and stock hits 0
+        // Only auto-flip inStock=false when sellWhenOutOfStock is explicitly false
         markOutOfStock: newInventory <= 0 && !product.sellWhenOutOfStock,
       });
     }
