@@ -6,6 +6,7 @@ import { useState } from "react";
 export default function CartDrawer() {
   const { open, closeCart, items, itemCount, subtotal, updateQty, removeItem } = useCart();
   const [discountOpen, setDiscountOpen] = useState(false);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
   return (
     <>
@@ -36,11 +37,18 @@ export default function CartDrawer() {
           ) : (
             items.map((item) => (
               <div key={`${item.productId}-${item.variantId ?? ""}`} className="flex gap-4 pb-5 border-b border-white/10">
-                <div className="w-20 h-20 rounded-xl bg-white/10 shrink-0 overflow-hidden">
-                  {item.imageUrl ? (
+                <div className="w-20 h-20 rounded-xl bg-white/10 shrink-0 overflow-hidden flex items-center justify-center">
+                  {item.imageUrl && !imgErrors[`${item.productId}-${item.variantId ?? ""}`] ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
-                  ) : null}
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                      onError={() => setImgErrors(prev => ({ ...prev, [`${item.productId}-${item.variantId ?? ""}`]: true }))}
+                    />
+                  ) : (
+                    <span className="text-white/20 text-xl">✦</span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-medium truncate mb-1">{item.title}</p>

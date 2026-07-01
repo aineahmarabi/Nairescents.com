@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,6 +12,7 @@ interface Props {
 
 export default function ProductCard({ product }: Props) {
   const { addItem, triggerFly } = useCart();
+  const [imgFailed, setImgFailed] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
   const img = product.images?.[0];
 
@@ -36,8 +37,8 @@ export default function ProductCard({ product }: Props) {
       {href ? (
         <Link href={href} className="flex flex-col">
           <div ref={imgRef} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/8 mb-3">
-            {img ? (
-              <Image src={img} alt={product.title} fill className="object-contain" sizes="(max-width: 640px) 50vw, 25vw" />
+            {img && !imgFailed ? (
+              <Image src={img} alt={product.title} fill className="object-contain" sizes="(max-width: 640px) 50vw, 25vw" onError={() => setImgFailed(true)} />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center">
@@ -67,8 +68,8 @@ export default function ProductCard({ product }: Props) {
       ) : (
         <>
           <div ref={imgRef} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/8 mb-3">
-            {img ? (
-              <Image src={img} alt={product.title} fill className="object-contain" sizes="(max-width: 640px) 50vw, 25vw" />
+            {img && !imgFailed ? (
+              <Image src={img} alt={product.title} fill className="object-contain" sizes="(max-width: 640px) 50vw, 25vw" onError={() => setImgFailed(true)} />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center">

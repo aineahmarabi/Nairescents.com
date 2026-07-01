@@ -57,6 +57,8 @@ export default function ProductDetailPage({ params }: Props) {
   const track = useTrackEvent();
   const imgRef = useRef<HTMLDivElement>(null);
   const [qty, setQty] = useState(1);
+  const [imgFailed, setImgFailed] = useState(false);
+  const [thumbFailed, setThumbFailed] = useState<Record<number, boolean>>({});
 
   const rawProduct = useQuery(api.products.getByHandle, { handle: slug });
   const allRaw = useQuery(api.products.list, { status: "Active" });
@@ -151,7 +153,7 @@ export default function ProductDetailPage({ params }: Props) {
             transition={{ duration: 0.6, ease }}
           >
             <div ref={imgRef} className="relative aspect-[3/4] rounded-2xl overflow-hidden max-h-[480px]">
-              {img ? (
+              {img && !imgFailed ? (
                 <Image
                   src={img}
                   alt={product!.title}
@@ -159,6 +161,7 @@ export default function ProductDetailPage({ params }: Props) {
                   priority
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 50vw"
+                  onError={() => setImgFailed(true)}
                 />
               ) : (
                 <div className="absolute inset-0 bg-white/5 flex items-center justify-center">
@@ -181,8 +184,14 @@ export default function ProductDetailPage({ params }: Props) {
             {product!.images.length > 1 && (
               <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
                 {product!.images.slice(0, 6).map((url, i) => (
-                  <div key={i} className="relative w-16 h-20 flex-none rounded-lg overflow-hidden border border-white/10">
-                    <Image src={url} alt={`${product!.title} view ${i + 1}`} fill className="object-cover" sizes="64px" />
+                  <div key={i} className="relative w-16 h-20 flex-none rounded-lg overflow-hidden border border-white/10 bg-white/5">
+                    {!thumbFailed[i] ? (
+                      <Image src={url} alt={`${product!.title} view ${i + 1}`} fill className="object-cover" sizes="64px" onError={() => setThumbFailed(p => ({ ...p, [i]: true }))} />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-white/10 text-[10px]">✦</span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

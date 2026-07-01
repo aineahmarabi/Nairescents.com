@@ -83,6 +83,14 @@ export default function CheckoutPage() {
   const [placing, setPlacing] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [payError, setPayError] = useState("");
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [placedDetails, setPlacedDetails] = useState<{
+    subtotal: number;
+    shippingCost: number;
+    total: number;
+    firstName: string;
+    shippingZoneName: string;
+  } | null>(null);
 
   function set<K extends keyof FormState>(key: K, val: FormState[K]) {
     setForm((p) => ({ ...p, [key]: val }));
@@ -103,12 +111,47 @@ export default function CheckoutPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPayError("");
-    if (!form.email) { setEmailError(true); return; }
-    if (paymentMethod === "paystack" && !/^\S+@\S+\.\S+$/.test(form.email)) {
+
+    const newErrors: Record<string, boolean> = {};
+
+    // Validate email/phone
+    const trimmedEmail = form.email.trim();
+    if (!trimmedEmail) {
+      newErrors.email = true;
+      setEmailError(true);
+    } else if (paymentMethod === "paystack" && !/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      newErrors.email = true;
       setEmailError(true);
       setPayError("Enter a valid email address to pay with Paystack.");
+    } else {
+      setEmailError(false);
+    }
+
+    // Validate delivery details
+    if (!form.firstName.trim()) newErrors.firstName = true;
+    if (!form.lastName.trim()) newErrors.lastName = true;
+    if (!form.address.trim()) newErrors.address = true;
+    if (!form.city.trim()) newErrors.city = true;
+
+    // Validate billing details if different
+    if (!form.billingSameAsShipping) {
+      if (!form.billingAddress.trim()) newErrors.billingAddress = true;
+      if (!form.billingCity.trim()) newErrors.billingCity = true;
+    }
+
+    setErrors(newErrors);
+
+    // Find first invalid key and scroll/focus
+    const firstInvalidId = Object.keys(newErrors)[0];
+    if (firstInvalidId) {
+      const el = document.getElementById(firstInvalidId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.focus();
+      }
       return;
     }
+
     if (items.length === 0) return;
     setPlacing(true);
 
@@ -148,6 +191,13 @@ export default function CheckoutPage() {
     }
 
     await new Promise((r) => setTimeout(r, 1200));
+    setPlacedDetails({
+      subtotal,
+      shippingCost,
+      total,
+      firstName: form.firstName,
+      shippingZoneName: selectedZone.name,
+    });
     setPlacing(false);
     setOrderPlaced(true);
     track("order_placed", { value: total });
@@ -160,7 +210,7 @@ export default function CheckoutPage() {
   }
 
   /* ── success screen ── */
-  if (orderPlaced) {
+  if (orderPlaced && placedDetails) {
     return (
       <div className="min-h-screen bg-[#0B3D33] flex flex-col items-center justify-center px-4 text-center">
         <motion.div
@@ -176,18 +226,18 @@ export default function CheckoutPage() {
           </div>
           <h1 className="text-white text-2xl font-bold mb-3">Order Placed!</h1>
           <p className="text-white/60 text-sm leading-relaxed mb-5">
-            Thank you, {form.firstName}. Your order has been received. We&apos;ll confirm via WhatsApp or email shortly.
+            Thank you, {placedDetails.firstName}. Your order has been received. We&apos;ll confirm via WhatsApp or email shortly.
           </p>
           <div className="text-left rounded-xl border border-white/10 bg-white/5 p-4 mb-8 space-y-2 text-sm">
             <div className="flex justify-between text-white/60">
-              <span>Subtotal</span><span>Ksh {subtotal.toLocaleString()}.00</span>
+              <span>Subtotal</span><span>Ksh {placedDetails.subtotal.toLocaleString()}.00</span>
             </div>
             <div className="flex justify-between text-white/60">
-              <span>Shipping{selectedZone.price === 0 ? " (Free)" : ` — ${selectedZone.name.split(",")[0]}`}</span>
-              <span>{shippingCost === 0 ? "FREE" : `Ksh ${shippingCost.toLocaleString()}.00`}</span>
+              <span>Shipping{placedDetails.shippingCost === 0 ? " (Free)" : ` — ${placedDetails.shippingZoneName.split(",")[0]}`}</span>
+              <span>{placedDetails.shippingCost === 0 ? "FREE" : `Ksh ${placedDetails.shippingCost.toLocaleString()}.00`}</span>
             </div>
             <div className="flex justify-between text-white font-semibold border-t border-white/10 pt-2">
-              <span>Total</span><span>Ksh {total.toLocaleString()}.00</span>
+              <span>Total</span><span>Ksh {placedDetails.total.toLocaleString()}.00</span>
             </div>
           </div>
           <Link
@@ -223,7 +273,7 @@ export default function CheckoutPage() {
       </header>
 
       {/* ── Two-column body ── */}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row">
 
           {/* ════ LEFT COLUMN ════ */}
@@ -234,10 +284,15 @@ export default function CheckoutPage() {
               <h2 className="text-white font-bold text-lg">Contact</h2>
               <div>
                 <input
+                  id="email"
                   type="text"
                   placeholder="Email or mobile phone number"
                   value={form.email}
-                  onChange={(e) => { set("email", e.target.value); setEmailError(false); }}
+                  onChange={(e) => {
+                    set("email", e.target.value);
+                    setEmailError(false);
+                    setErrors((errs) => ({ ...errs, email: false }));
+                  }}
                   className={`${INPUT} ${emailError ? "border-red-400" : ""}`}
                 />
                 {emailError && <p className="text-red-400 text-xs mt-1">Enter an email or phone number.</p>}
@@ -258,18 +313,62 @@ export default function CheckoutPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <input required placeholder="First name" value={form.firstName}
-                  onChange={(e) => set("firstName", e.target.value)} className={INPUT} />
-                <input required placeholder="Last name" value={form.lastName}
-                  onChange={(e) => set("lastName", e.target.value)} className={INPUT} />
+                <div>
+                  <input
+                    id="firstName"
+                    placeholder="First name"
+                    value={form.firstName}
+                    onChange={(e) => {
+                      set("firstName", e.target.value);
+                      setErrors((errs) => ({ ...errs, firstName: false }));
+                    }}
+                    className={`${INPUT} ${errors.firstName ? "border-red-400" : ""}`}
+                  />
+                  {errors.firstName && <p className="text-red-400 text-xs mt-1">Enter a first name.</p>}
+                </div>
+                <div>
+                  <input
+                    id="lastName"
+                    placeholder="Last name"
+                    value={form.lastName}
+                    onChange={(e) => {
+                      set("lastName", e.target.value);
+                      setErrors((errs) => ({ ...errs, lastName: false }));
+                    }}
+                    className={`${INPUT} ${errors.lastName ? "border-red-400" : ""}`}
+                  />
+                  {errors.lastName && <p className="text-red-400 text-xs mt-1">Enter a last name.</p>}
+                </div>
               </div>
-              <input required placeholder="Address" value={form.address}
-                onChange={(e) => set("address", e.target.value)} className={INPUT} />
+              <div>
+                <input
+                  id="address"
+                  placeholder="Address"
+                  value={form.address}
+                  onChange={(e) => {
+                    set("address", e.target.value);
+                    setErrors((errs) => ({ ...errs, address: false }));
+                  }}
+                  className={`${INPUT} ${errors.address ? "border-red-400" : ""}`}
+                />
+                {errors.address && <p className="text-red-400 text-xs mt-1">Enter an address.</p>}
+              </div>
               <input placeholder="Apartment, suite, etc. (optional)" value={form.apartment}
                 onChange={(e) => set("apartment", e.target.value)} className={INPUT} />
               <div className="grid grid-cols-2 gap-3">
-                <input required placeholder="City" value={form.city}
-                  onChange={(e) => set("city", e.target.value)} className={INPUT} />
+                <div>
+                  <input
+                    id="city"
+                    placeholder="City"
+                    value={form.city}
+                    onChange={(e) => {
+                      set("city", e.target.value);
+                      setErrors((errs) => ({ ...errs, city: false }));
+                    }}
+                    className={`${INPUT} ${errors.city ? "border-red-400" : ""}`}
+                  />
+                  {errors.city && <p className="text-red-400 text-xs mt-1">Enter a city.</p>}
+                </div>
                 <input placeholder="Postal code (optional)" value={form.postalCode}
                   onChange={(e) => set("postalCode", e.target.value)} className={INPUT} />
               </div>
@@ -374,10 +473,32 @@ export default function CheckoutPage() {
                     exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
                     className="overflow-hidden space-y-3"
                   >
-                    <input placeholder="Billing address" value={form.billingAddress}
-                      onChange={(e) => set("billingAddress", e.target.value)} className={INPUT} />
-                    <input placeholder="City" value={form.billingCity}
-                      onChange={(e) => set("billingCity", e.target.value)} className={INPUT} />
+                    <div>
+                      <input
+                        id="billingAddress"
+                        placeholder="Billing address"
+                        value={form.billingAddress}
+                        onChange={(e) => {
+                          set("billingAddress", e.target.value);
+                          setErrors((errs) => ({ ...errs, billingAddress: false }));
+                        }}
+                        className={`${INPUT} ${errors.billingAddress ? "border-red-400" : ""}`}
+                      />
+                      {errors.billingAddress && <p className="text-red-400 text-xs mt-1">Enter a billing address.</p>}
+                    </div>
+                    <div>
+                      <input
+                        id="billingCity"
+                        placeholder="City"
+                        value={form.billingCity}
+                        onChange={(e) => {
+                          set("billingCity", e.target.value);
+                          setErrors((errs) => ({ ...errs, billingCity: false }));
+                        }}
+                        className={`${INPUT} ${errors.billingCity ? "border-red-400" : ""}`}
+                      />
+                      {errors.billingCity && <p className="text-red-400 text-xs mt-1">Enter a billing city.</p>}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

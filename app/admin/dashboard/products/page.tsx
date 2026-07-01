@@ -40,6 +40,7 @@ export default function AdminProductsPage() {
   const [statusFilter, setStatusFilter] = useState<"" | "Active" | "Draft">("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
   const [sortCol, setSortCol] = useState<"title" | "status" | "inventory" | "category" | "vendor" | "price" | "date">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -212,9 +213,14 @@ export default function AdminProductsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      {p.images[0] ? (
+                      {p.images[0] && !imgErrors[p._id] ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.images[0].url} alt={p.title} className="w-10 h-10 rounded-xl object-cover bg-gray-100 shrink-0" />
+                        <img
+                          src={p.images[0].url}
+                          alt={p.title}
+                          className="w-10 h-10 rounded-xl object-cover bg-gray-100 shrink-0"
+                          onError={() => setImgErrors((prev) => ({ ...prev, [p._id]: true }))}
+                        />
                       ) : (
                         <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
                           <Package className="w-4 h-4 text-gray-300" />
