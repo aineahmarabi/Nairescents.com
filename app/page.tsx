@@ -29,8 +29,8 @@ export default async function HomePage() {
   const allProducts = await convex.query(api.products.list, {}).catch(() => [] as any[]);
 
   const initialPanelImages: string[][] = [
-    extractImages(allProducts, "Men"),
-    extractImages(allProducts, "Women"),
+    extractImages(allProducts, undefined, "Men"),
+    extractImages(allProducts, undefined, "Women"),
     extractImages(allProducts, undefined, "Best Seller"),
     extractImages(allProducts, undefined, "New In"),
   ];

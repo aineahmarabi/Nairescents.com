@@ -3,6 +3,8 @@ import { Suspense, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -12,6 +14,16 @@ import ProductCard from "@/components/ui/ProductCard";
 import { BRANDS } from "@/lib/types";
 import type { Product } from "@/lib/types";
 import Link from "next/link";
+
+const ease = [0.16, 1, 0.3, 1] as const;
+
+const BRAND_LOGO_SLUG: Record<string, string> = {
+  "Lattafa": "lattafa",
+  "Fragrance World": "fragrance-world",
+  "French Avenue": "french-avenue",
+  "Maison Alhambra": "maison-alhambra",
+  "Ard Al Zaafaran": "ard-al-zaafaran",
+};
 
 function toProductCard(p: any): Product {
   return {
@@ -64,7 +76,42 @@ function BrandsContent() {
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <BackButton />
-      <h1 className="text-white text-3xl sm:text-4xl font-bold tracking-tight mb-8">Shop by Brands</h1>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-4 mb-8">
+        <h1 className="text-white text-3xl sm:text-4xl font-bold tracking-tight">Shop by Brands</h1>
+
+        {/* Brand logos — all 5 for "All Brands", one featured for a selected brand */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeBrand ?? "all"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease }}
+            className="flex flex-wrap items-center gap-x-7 gap-y-3"
+          >
+            {activeBrand ? (
+              <Image
+                src={`/brand-logos/${BRAND_LOGO_SLUG[activeBrand]}-gold-transparent.png`}
+                alt={activeBrand}
+                width={200}
+                height={120}
+                className="h-16 sm:h-20 w-auto object-contain"
+              />
+            ) : (
+              BRANDS.map((b) => (
+                <Image
+                  key={b}
+                  src={`/brand-logos/${BRAND_LOGO_SLUG[b]}-gold-transparent.png`}
+                  alt={b}
+                  width={140}
+                  height={90}
+                  className="h-12 sm:h-14 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+                />
+              ))
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
       {/* Brand pills */}
       <div className="flex flex-wrap gap-3 mb-8">

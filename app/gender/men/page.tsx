@@ -42,7 +42,7 @@ function toProductCard(p: any): Product {
 
 function ForMenContent() {
   const sp = useSearchParams();
-  const all = useQuery(api.products.list, { status: "Active", gender: "Men" });
+  const all = useQuery(api.products.list, { status: "Active", tag: "Men" });
 
   const products = useMemo(() => {
     if (!all) return null;

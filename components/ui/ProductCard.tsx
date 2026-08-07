@@ -13,6 +13,7 @@ interface Props {
 export default function ProductCard({ product }: Props) {
   const { addItem, triggerFly } = useCart();
   const [imgFailed, setImgFailed] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
   const img = product.images?.[0];
 
@@ -38,7 +39,7 @@ export default function ProductCard({ product }: Props) {
         <Link href={href} className="flex flex-col">
           <div ref={imgRef} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/8 mb-3">
             {img && !imgFailed ? (
-              <Image src={img} alt={product.title} fill className="object-contain" sizes="(max-width: 640px) 50vw, 25vw" onError={() => setImgFailed(true)} />
+              <Image src={img} alt={product.title} fill className="object-contain" sizes="(max-width: 640px) 50vw, 25vw" onLoad={() => setImgLoaded(true)} onError={() => setImgFailed(true)} />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center">
@@ -46,6 +47,7 @@ export default function ProductCard({ product }: Props) {
                 </div>
               </div>
             )}
+            {imgLoaded && <span className="shine-once" aria-hidden="true" />}
             {product.tags?.newIn && (
               <span className="absolute top-2 left-2 bg-[#C9A96E] text-[#0B3D33] text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full">New</span>
             )}
@@ -69,7 +71,7 @@ export default function ProductCard({ product }: Props) {
         <>
           <div ref={imgRef} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/8 mb-3">
             {img && !imgFailed ? (
-              <Image src={img} alt={product.title} fill className="object-contain" sizes="(max-width: 640px) 50vw, 25vw" onError={() => setImgFailed(true)} />
+              <Image src={img} alt={product.title} fill className="object-contain" sizes="(max-width: 640px) 50vw, 25vw" onLoad={() => setImgLoaded(true)} onError={() => setImgFailed(true)} />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center">
@@ -77,6 +79,7 @@ export default function ProductCard({ product }: Props) {
                 </div>
               </div>
             )}
+            {imgLoaded && <span className="shine-once" aria-hidden="true" />}
           </div>
           <div className="flex-1 flex flex-col gap-1">
             <p className="text-white/40 text-[10px] tracking-widest uppercase">{product.brand}</p>

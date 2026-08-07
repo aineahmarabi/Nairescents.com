@@ -2,10 +2,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { Search, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
 import { useCart } from "./CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import SearchOverlay from "./SearchOverlay";
+import { BRANDS } from "@/lib/types";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -32,6 +35,12 @@ export default function Navbar() {
   const [brandsOpen, setBrandsOpen] = useState(false);
   const [mobileBrandsOpen, setMobileBrandsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+
+  const bestSellers = useQuery(api.products.list, { status: "Active", tag: "Best Seller", limit: 6 });
+  const tickerItems: { label: string; href: string }[] = [
+    ...BRANDS.map((b) => ({ label: b, href: `/brands?brand=${encodeURIComponent(b)}` })),
+    ...(bestSellers ?? []).map((p) => ({ label: p.title, href: `/products/${p.handle}` })),
+  ];
 
   return (
     <nav className="sticky top-0 z-50 bg-[#0B3D33] border-b border-white/10">
@@ -139,6 +148,25 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* Brand + bestseller conveyor ticker */}
+      {tickerItems.length > 0 && (
+        <div className="overflow-hidden">
+          <div className="ticker-track flex w-max items-center pb-2.5">
+            {[...tickerItems, ...tickerItems].map((item, i) => (
+              <span key={`${item.label}-${i}`} className="flex items-center shrink-0">
+                <Link
+                  href={item.href}
+                  className="text-white/40 hover:text-[#C9A96E] text-[11px] font-semibold tracking-[0.25em] uppercase transition-colors whitespace-nowrap"
+                >
+                  {item.label}
+                </Link>
+                <span className="text-[#C9A96E]/40 text-[9px] mx-8">◆</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Mobile menu */}
       <AnimatePresence>

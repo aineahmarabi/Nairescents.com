@@ -48,7 +48,7 @@ function mapProduct(p: {
 }
 
 export default function WomenSection() {
-  const products = useQuery(api.products.list, { gender: "Women", status: "Active" });
+  const products = useQuery(api.products.list, { tag: "Women", status: "Active" });
   const mapped = (products ?? []).slice(0, 10).map(mapProduct);
 
   return (

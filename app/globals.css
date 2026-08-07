@@ -46,6 +46,77 @@ a {
 .admin-root .text-xl  { font-size: 21px; }
 .admin-root .text-2xl { font-size: 25px; }
 
+/* Sharp reflective shine sweeping left to right, repeating as uniform pulses */
+@keyframes glow-sweep {
+  0% { background-position: -120% 0; }
+  100% { background-position: 220% 0; }
+}
+
+.glow-sweep {
+  background-image: linear-gradient(
+    100deg,
+    var(--brand-gold) 0%,
+    var(--brand-gold) 45%,
+    #fff 50%,
+    var(--brand-gold) 55%,
+    var(--brand-gold) 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 5px rgba(201, 169, 110, 0.6));
+  animation: glow-sweep 3s ease-in-out infinite;
+}
+
+/* One-time diagonal shine sweep on product cards, fired once each image has loaded */
+@keyframes shine-once {
+  0% { transform: translate3d(-60%, -60%, 0) rotate(20deg); opacity: 0; }
+  12% { opacity: 1; }
+  55% { transform: translate3d(60%, 60%, 0) rotate(20deg); opacity: 1; }
+  70% { opacity: 0; }
+  100% { transform: translate3d(60%, 60%, 0) rotate(20deg); opacity: 0; }
+}
+
+.shine-once {
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.55) 50%, transparent 58%);
+  pointer-events: none;
+  animation: shine-once 1.6s ease-out 2s both;
+}
+
+/* Repeating diagonal shine sweep on the hero door panels, once every 5 seconds */
+@keyframes shine-repeat {
+  0% { transform: translate3d(-60%, -60%, 0) rotate(20deg); opacity: 0; }
+  8% { opacity: 1; }
+  40% { transform: translate3d(60%, 60%, 0) rotate(20deg); opacity: 1; }
+  50% { opacity: 0; }
+  100% { transform: translate3d(60%, 60%, 0) rotate(20deg); opacity: 0; }
+}
+
+.shine-repeat {
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.55) 50%, transparent 58%);
+  pointer-events: none;
+  animation: shine-repeat 5s ease-out infinite;
+}
+
+/* Navbar brand/bestseller conveyor-belt ticker — seamless infinite scroll */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.ticker-track {
+  animation: ticker-scroll 90s linear infinite;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+
 /* scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

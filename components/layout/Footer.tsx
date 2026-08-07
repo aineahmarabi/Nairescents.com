@@ -75,10 +75,12 @@ export default function Footer() {
               Contact Us
             </h3>
             <div className="space-y-1 text-sm text-white/80 mb-4">
-              <p>Stanbank House Shop A604,</p>
-              <p>Wing A 6th floor, Nairobi</p>
-              <p className="pt-2">Monday – Saturday</p>
-              <p>9AM – 5PM</p>
+              <p>
+                <Link href="/contact" className="underline underline-offset-2 decoration-white/40 hover:text-[#C9A96E] transition-colors">
+                  Online Store
+                </Link>{" "}
+                Open <span className="glow-sweep font-semibold">24/7</span>
+              </p>
               <a
                 href="https://wa.me/254758333996"
                 target="_blank"

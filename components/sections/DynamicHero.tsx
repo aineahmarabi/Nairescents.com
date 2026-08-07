@@ -3,7 +3,27 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
+
+const BRAND_LOGOS = [
+  { slug: "lattafa", name: "Lattafa" },
+  { slug: "fragrance-world", name: "Fragrance World" },
+  { slug: "french-avenue", name: "French Avenue" },
+  { slug: "maison-alhambra", name: "Maison Alhambra" },
+  { slug: "ard-al-zaafaran", name: "Ard Al Zaafaran" },
+];
+
+// Default cinematic rotation for the featured panel, used until an admin sets a custom rotation
+const DEFAULT_HERO_IMAGES = [
+  "/hero/hero-02-smoke-emerald-1200x1800.jpg",
+  "/hero/hero-01-amber-bottle-oud-smoke-1200x1800.jpg",
+  "/hero/hero-06-spray-mist-1200x1800.jpg",
+  "/hero/hero-05-dune-shadow-1200x1800.jpg",
+  "/hero/hero-03-gold-dust-oud-1200x1800.jpg",
+  "/hero/hero-07-majlis-still-life-1200x1800.jpg",
+  "/hero/hero-04-crystal-macro-1200x1800.jpg",
+];
 
 const ease = [0.16, 1, 0.3, 1] as const;
 // Expo-out easing string for native CSS transitions on layout props
@@ -100,6 +120,7 @@ function PanelContent({ panel, images, isHot }: { panel: DoorPanel; images: stri
       <div className="absolute inset-0 bg-black/30" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(0,0,0,0.7)_0%,transparent_65%)]" />
       {isHot && <div className="absolute inset-0 bg-black/10 transition-all duration-300" />}
+      <span className="shine-repeat" aria-hidden="true" />
 
       {/* Text */}
       <div className="relative z-10 space-y-1">
@@ -145,6 +166,7 @@ function MobilePanelCard({ panel, images }: { panel: DoorPanel; images: string[]
       <PanelBackground images={images} idx={idx < 0 ? 0 : idx} bg={panel.fallbackBg} />
       <div className="absolute inset-0 bg-black/30" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(0,0,0,0.7)_0%,transparent_65%)]" />
+      <span className="shine-repeat" aria-hidden="true" />
       <div className="relative z-10">
         <p className="text-[#C9A96E] text-[9px] tracking-[0.2em] uppercase font-semibold">{panel.label}</p>
         <p className="text-white text-sm font-bold mt-0.5">{panel.name}</p>
@@ -159,11 +181,15 @@ interface DynamicHeroProps {
 
 export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
   const [hovered, setHovered] = useState<number | null>(null);
-  const [featuredImg, setFeaturedImg] = useState("");
 
   const featuredSlot = useQuery(api.hero.getBySlot, { slot: "featured" });
-  const rawMen    = usePanelImages("Men");
-  const rawWomen  = usePanelImages("Women");
+  const featuredImages =
+    featuredSlot?.rotationImages && featuredSlot.rotationImages.length > 0
+      ? featuredSlot.rotationImages
+      : DEFAULT_HERO_IMAGES;
+  const featuredIdx = useCycleIndex(featuredImages.length, 5000);
+  const rawMen    = usePanelImages(undefined, "Men");
+  const rawWomen  = usePanelImages(undefined, "Women");
   const rawBest   = usePanelImages(undefined, "Best Seller");
   const rawNew    = usePanelImages(undefined, "New In");
 
@@ -175,40 +201,55 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
 
   const panelImages = [menImages, womenImages, bestImages, newImages];
 
-  useEffect(() => {
-    const imgs = featuredSlot?.rotationImages;
-    if (!imgs || imgs.length === 0) { setFeaturedImg(""); return; }
-    const idx = Math.floor(Date.now() / (6 * 60 * 60 * 1000)) % imgs.length;
-    setFeaturedImg(imgs[idx]);
-  }, [featuredSlot]);
-
   return (
     <>
       {/* ── DESKTOP ── */}
-      <section className="hidden md:flex w-full" style={{ height: "92vh", minHeight: "600px" }}>
+      <section className="hidden md:flex w-full" style={{ height: "calc(100vh - 140px)", minHeight: "500px" }}>
         {/* Featured left panel — 32% */}
         <motion.div
           initial={{ opacity: 0, x: -28 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.65, ease }}
           className="relative flex-none flex flex-col justify-center p-10 overflow-hidden"
-          style={{
-            width: "32%",
-            background: featuredImg
-              ? `url(${featuredImg}) center/cover no-repeat`
-              : "linear-gradient(160deg, #0B3D33 0%, #081f1a 100%)",
-          }}
+          style={{ width: "32%" }}
         >
-          {featuredImg && <div className="absolute inset-0 bg-[#0B3D33]/55" />}
+          <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, #0B3D33 0%, #081f1a 100%)" }} />
+          <AnimatePresence mode="sync">
+            <motion.div
+              key={featuredImages[featuredIdx]}
+              initial={{ opacity: 0, scale: 1 }}
+              animate={{ opacity: 1, scale: 1.15 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                opacity: { duration: 1.2, ease: "easeInOut" },
+                scale: { duration: 6, ease: "easeOut" },
+              }}
+              className="absolute inset-0 bg-center bg-cover bg-no-repeat"
+              style={{ backgroundImage: `url(${featuredImages[featuredIdx]})` }}
+            />
+          </AnimatePresence>
+          <div className="absolute inset-0 bg-[#0B3D33]/55" />
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_#C9A96E_0%,_transparent_60%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(0,0,0,0.5)_0%,transparent_60%)]" />
+          <div className="absolute top-6 left-10 z-10 flex flex-wrap items-center gap-4">
+            {BRAND_LOGOS.map((b) => (
+              <Image
+                key={b.slug}
+                src={`/brand-logos/${b.slug}-gold-transparent.png`}
+                alt={b.name}
+                width={100}
+                height={70}
+                className="h-12 sm:h-14 w-auto object-contain opacity-95"
+              />
+            ))}
+          </div>
           <div className="relative z-10">
             <p className="text-[#C9A96E] text-xs tracking-[0.3em] uppercase font-semibold mb-3">Luxury Arabian Fragrances</p>
             <h1 className="text-white text-5xl xl:text-6xl font-bold tracking-tighter leading-none mb-5">
               Scents<br />by Naire
             </h1>
             <p className="text-white/50 text-sm leading-relaxed mb-8 max-w-[260px]">
-              Discover the art of fine perfumery — crafted for those who leave an impression.
+              Scents that speak before you do.
             </p>
             <Link
               href="/products"
@@ -246,19 +287,41 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
       </section>
 
       {/* ── MOBILE ── */}
-      <section className="md:hidden flex flex-col" style={{ minHeight: "90vh" }}>
+      <section className="md:hidden flex flex-col" style={{ minHeight: "calc(100vh - 124px)" }}>
         {/* Featured */}
         <div
           className="flex flex-col justify-end px-6 py-8 relative overflow-hidden"
-          style={{
-            height: "40%",
-            background: featuredImg
-              ? `url(${featuredImg}) center/cover no-repeat`
-              : "linear-gradient(160deg, #0B3D33 0%, #081f1a 100%)",
-          }}
+          style={{ height: "40%" }}
         >
-          {featuredImg && <div className="absolute inset-0 bg-[#0B3D33]/55" />}
+          <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, #0B3D33 0%, #081f1a 100%)" }} />
+          <AnimatePresence mode="sync">
+            <motion.div
+              key={featuredImages[featuredIdx]}
+              initial={{ opacity: 0, scale: 1 }}
+              animate={{ opacity: 1, scale: 1.15 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                opacity: { duration: 1.2, ease: "easeInOut" },
+                scale: { duration: 6, ease: "easeOut" },
+              }}
+              className="absolute inset-0 bg-center bg-cover bg-no-repeat"
+              style={{ backgroundImage: `url(${featuredImages[featuredIdx]})` }}
+            />
+          </AnimatePresence>
+          <div className="absolute inset-0 bg-[#0B3D33]/55" />
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_#C9A96E_0%,_transparent_60%)]" />
+          <div className="absolute top-4 left-6 z-10 flex flex-wrap items-center gap-3">
+            {BRAND_LOGOS.map((b) => (
+              <Image
+                key={b.slug}
+                src={`/brand-logos/${b.slug}-gold-transparent.png`}
+                alt={b.name}
+                width={90}
+                height={60}
+                className="h-8 w-auto object-contain opacity-95"
+              />
+            ))}
+          </div>
           <div className="relative z-10">
             <p className="text-[#C9A96E] text-[10px] tracking-[0.3em] uppercase font-semibold mb-2">Luxury Arabian Fragrances</p>
             <h1 className="text-white text-4xl font-bold tracking-tighter leading-none mb-3">Scents by Naire</h1>
