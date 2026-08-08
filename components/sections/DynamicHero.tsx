@@ -204,7 +204,7 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
   return (
     <>
       {/* ── DESKTOP ── */}
-      <section className="hidden md:flex w-full" style={{ height: "calc(100vh - 140px)", minHeight: "500px" }}>
+      <section className="hidden md:flex w-full" style={{ height: "calc(100vh - 113px)", minHeight: "500px" }}>
         {/* Featured left panel — 32% */}
         <motion.div
           initial={{ opacity: 0, x: -28 }}
@@ -231,18 +231,28 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
           <div className="absolute inset-0 bg-[#0B3D33]/55" />
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_#C9A96E_0%,_transparent_60%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(0,0,0,0.5)_0%,transparent_60%)]" />
-          <div className="absolute top-6 left-10 z-10 flex flex-wrap items-center gap-4">
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={{ hidden: {}, show: { transition: { staggerChildren: 0.12, delayChildren: 0.3 } } }}
+            className="absolute top-6 left-10 z-10 flex flex-wrap items-center gap-4"
+          >
             {BRAND_LOGOS.map((b) => (
-              <Image
+              <motion.div
                 key={b.slug}
-                src={`/brand-logos/${b.slug}-gold-transparent.png`}
-                alt={b.name}
-                width={100}
-                height={70}
-                className="h-12 sm:h-14 w-auto object-contain opacity-95"
-              />
+                variants={{ hidden: { opacity: 0, x: -50 }, show: { opacity: 1, x: 0 } }}
+                transition={{ duration: 0.55, ease }}
+              >
+                <Image
+                  src={`/brand-logos/${b.slug}-gold-transparent.png`}
+                  alt={b.name}
+                  width={100}
+                  height={70}
+                  className="h-12 sm:h-14 w-auto object-contain opacity-95"
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
           <div className="relative z-10">
             <p className="text-[#C9A96E] text-xs tracking-[0.3em] uppercase font-semibold mb-3">Luxury Arabian Fragrances</p>
             <h1 className="text-white text-5xl xl:text-6xl font-bold tracking-tighter leading-none mb-5">
@@ -287,7 +297,7 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
       </section>
 
       {/* ── MOBILE ── */}
-      <section className="md:hidden flex flex-col" style={{ minHeight: "calc(100vh - 124px)" }}>
+      <section className="md:hidden flex flex-col" style={{ minHeight: "calc(100vh - 97px)" }}>
         {/* Featured */}
         <div
           className="flex flex-col justify-between px-6 py-6 relative overflow-hidden"
@@ -310,18 +320,28 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
           </AnimatePresence>
           <div className="absolute inset-0 bg-[#0B3D33]/55" />
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_#C9A96E_0%,_transparent_60%)]" />
-          <div className="relative z-10 flex flex-wrap items-center gap-3">
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={{ hidden: {}, show: { transition: { staggerChildren: 0.1, delayChildren: 0.25 } } }}
+            className="relative z-10 flex flex-wrap items-center gap-3"
+          >
             {BRAND_LOGOS.map((b) => (
-              <Image
+              <motion.div
                 key={b.slug}
-                src={`/brand-logos/${b.slug}-gold-transparent.png`}
-                alt={b.name}
-                width={90}
-                height={60}
-                className="h-7 w-auto object-contain opacity-95"
-              />
+                variants={{ hidden: { opacity: 0, x: -40 }, show: { opacity: 1, x: 0 } }}
+                transition={{ duration: 0.5, ease }}
+              >
+                <Image
+                  src={`/brand-logos/${b.slug}-gold-transparent.png`}
+                  alt={b.name}
+                  width={90}
+                  height={60}
+                  className="h-7 w-auto object-contain opacity-95"
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
           <div className="relative z-10">
             <p className="text-[#C9A96E] text-[10px] tracking-[0.3em] uppercase font-semibold mb-2">Luxury Arabian Fragrances</p>
             <h1 className="text-white text-4xl font-bold tracking-tighter leading-none mb-3">Scents by Naire</h1>

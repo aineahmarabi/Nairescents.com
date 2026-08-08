@@ -103,20 +103,6 @@ a {
   animation: shine-repeat 5s ease-out infinite;
 }
 
-/* Navbar brand/bestseller conveyor-belt ticker — seamless infinite scroll */
-@keyframes ticker-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-.ticker-track {
-  animation: ticker-scroll 90s linear infinite;
-}
-
-.ticker-track:hover {
-  animation-play-state: paused;
-}
-
 /* scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
