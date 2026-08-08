@@ -7,6 +7,7 @@ import CartDrawer from "@/components/layout/CartDrawer";
 import CartFlyOverlay from "@/components/layout/CartFlyOverlay";
 import PageviewTracker from "@/components/layout/PageviewTracker";
 import { CartProvider } from "@/components/layout/CartContext";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const jost = Jost({
   subsets: ["latin"],
@@ -43,6 +44,7 @@ export default function RootLayout({
               <CartFlyOverlay />
             </CartProvider>
           </ConvexClientProvider>
+          <SpeedInsights />
         </body>
       </html>
     </ClerkProvider>
