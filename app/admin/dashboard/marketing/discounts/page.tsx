@@ -33,7 +33,7 @@ export default function AdminDiscountsPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Discounts</h1>
-        <Link href="/admin/dashboard/discounts/new" className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0B3D33] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity">
+        <Link href="/admin/dashboard/marketing/discounts/new" className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0B3D33] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity">
           <Plus className="w-4 h-4" /> Create discount
         </Link>
       </div>
@@ -51,7 +51,7 @@ export default function AdminDiscountsPage() {
           <div className="py-16 text-center">
             <Tag className="w-10 h-10 text-gray-200 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">{search ? "No matching codes" : "No discount codes yet"}</p>
-            {!search && <Link href="/admin/dashboard/discounts/new" className="inline-block mt-2 text-sm text-[#C9A96E] hover:underline">Create your first discount →</Link>}
+            {!search && <Link href="/admin/dashboard/marketing/discounts/new" className="inline-block mt-2 text-sm text-[#C9A96E] hover:underline">Create your first discount →</Link>}
           </div>
         ) : (
           <table className="w-full text-sm">

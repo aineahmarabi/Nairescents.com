@@ -1,18 +1,22 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./authHelpers";
 
 export const get = query({
   args: { key: v.string() },
-  handler: async (ctx, args) =>
-    ctx.db
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    return ctx.db
       .query("settings")
       .withIndex("by_key", (q) => q.eq("key", args.key))
-      .first(),
+      .first();
+  },
 });
 
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const rows = await ctx.db.query("settings").collect();
     return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   },
@@ -21,6 +25,7 @@ export const getAll = query({
 export const set = mutation({
   args: { key: v.string(), value: v.string() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("settings")
       .withIndex("by_key", (q) => q.eq("key", args.key))
@@ -33,6 +38,7 @@ export const set = mutation({
 export const setMany = mutation({
   args: { pairs: v.array(v.object({ key: v.string(), value: v.string() })) },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     for (const { key, value } of args.pairs) {
       const existing = await ctx.db
         .query("settings")

@@ -1,9 +1,11 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./authHelpers";
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const all = await ctx.db.query("contactSubmissions").collect();
     return all.sort((a, b) => b._creationTime - a._creationTime);
   },
@@ -11,12 +13,16 @@ export const list = query({
 
 export const get = query({
   args: { id: v.id("contactSubmissions") },
-  handler: async (ctx, args) => ctx.db.get(args.id),
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    return ctx.db.get(args.id);
+  },
 });
 
 export const unreadCount = query({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const unread = await ctx.db
       .query("contactSubmissions")
       .withIndex("by_status", (q) => q.eq("status", "new"))
@@ -25,6 +31,7 @@ export const unreadCount = query({
   },
 });
 
+// Public: the storefront contact form submits here with no login required.
 export const create = mutation({
   args: {
     name: v.string(),
@@ -41,10 +48,16 @@ export const setStatus = mutation({
     id: v.id("contactSubmissions"),
     status: v.union(v.literal("new"), v.literal("read"), v.literal("responded")),
   },
-  handler: async (ctx, args) => ctx.db.patch(args.id, { status: args.status }),
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    return ctx.db.patch(args.id, { status: args.status });
+  },
 });
 
 export const remove = mutation({
   args: { id: v.id("contactSubmissions") },
-  handler: async (ctx, args) => ctx.db.delete(args.id),
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    return ctx.db.delete(args.id);
+  },
 });

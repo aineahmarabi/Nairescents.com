@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./authHelpers";
 
 const variantObj = v.object({
   id: v.string(),
@@ -94,22 +95,32 @@ export const getByHandle = query({
 
 export const create = mutation({
   args: productFields,
-  handler: async (ctx, args) => ctx.db.insert("products", args),
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    return ctx.db.insert("products", args);
+  },
 });
 
 export const update = mutation({
   args: { id: v.id("products"), patch: v.any() },
-  handler: async (ctx, { id, patch }) => ctx.db.patch(id, patch),
+  handler: async (ctx, { id, patch }) => {
+    await requireAdmin(ctx);
+    return ctx.db.patch(id, patch);
+  },
 });
 
 export const remove = mutation({
   args: { id: v.id("products") },
-  handler: async (ctx, args) => ctx.db.delete(args.id),
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    return ctx.db.delete(args.id);
+  },
 });
 
 export const bulkCreate = mutation({
   args: { products: v.array(v.object(productFields)) },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const ids: string[] = [];
     for (const product of args.products) {
       const id = await ctx.db.insert("products", product);
@@ -121,7 +132,10 @@ export const bulkCreate = mutation({
 
 export const generateUploadUrl = mutation({
   args: {},
-  handler: async (ctx) => ctx.storage.generateUploadUrl(),
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    return ctx.storage.generateUploadUrl();
+  },
 });
 
 export const getStorageUrl = query({
@@ -134,6 +148,7 @@ export const getStorageUrl = query({
 export const cleanupImport = mutation({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const all = await ctx.db.query("products").collect();
     let deleted = 0;
     let activated = 0;

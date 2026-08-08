@@ -2,8 +2,8 @@ import { Megaphone, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const TOOLS = [
-  { title: "Discount Codes", desc: "Create percentage or fixed-amount codes to share with customers.", href: "/admin/dashboard/discounts", cta: "Manage discounts" },
-  { title: "Content / Hero", desc: "Update the homepage hero panels, headings, and links.", href: "/admin/dashboard/content", cta: "Edit content" },
+  { title: "Discount Codes", desc: "Create percentage or fixed-amount codes to share with customers.", href: "/admin/dashboard/marketing/discounts", cta: "Manage discounts" },
+  { title: "Content / Hero", desc: "Update the homepage hero panels, headings, and links.", href: "/admin/dashboard/marketing/content", cta: "Edit content" },
 ];
 
 export default function AdminMarketingPage() {

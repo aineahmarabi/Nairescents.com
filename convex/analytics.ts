@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./authHelpers";
 
 export const log = mutation({
   args: {
@@ -28,6 +29,7 @@ export const log = mutation({
 export const eventsSince = query({
   args: { since: v.number() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const all = await ctx.db.query("analyticsEvents").collect();
     return all.filter((e) => e._creationTime >= args.since);
   },
@@ -36,6 +38,7 @@ export const eventsSince = query({
 export const liveVisitors = query({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const fiveMinAgo = Date.now() - 5 * 60 * 1000;
     const all = await ctx.db.query("analyticsEvents").collect();
     const recent = all.filter((e) => e._creationTime >= fiveMinAgo);

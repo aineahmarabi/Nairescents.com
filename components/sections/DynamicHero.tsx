@@ -290,8 +290,8 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
       <section className="md:hidden flex flex-col" style={{ minHeight: "calc(100vh - 124px)" }}>
         {/* Featured */}
         <div
-          className="flex flex-col justify-end px-6 py-8 relative overflow-hidden"
-          style={{ height: "40%" }}
+          className="flex flex-col justify-between px-6 py-6 relative overflow-hidden"
+          style={{ height: "46%" }}
         >
           <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, #0B3D33 0%, #081f1a 100%)" }} />
           <AnimatePresence mode="sync">
@@ -310,7 +310,7 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
           </AnimatePresence>
           <div className="absolute inset-0 bg-[#0B3D33]/55" />
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_#C9A96E_0%,_transparent_60%)]" />
-          <div className="absolute top-4 left-6 z-10 flex flex-wrap items-center gap-3">
+          <div className="relative z-10 flex flex-wrap items-center gap-3">
             {BRAND_LOGOS.map((b) => (
               <Image
                 key={b.slug}
@@ -318,7 +318,7 @@ export default function DynamicHero({ initialPanelImages }: DynamicHeroProps) {
                 alt={b.name}
                 width={90}
                 height={60}
-                className="h-8 w-auto object-contain opacity-95"
+                className="h-7 w-auto object-contain opacity-95"
               />
             ))}
           </div>

@@ -20,7 +20,7 @@ export default function NewDiscountPage() {
     setSaving(true); setError("");
     try {
       await createDiscount({ code: form.code.trim().toUpperCase(), type: form.type, value: Number(form.value), usageLimit: form.usageLimit ? Number(form.usageLimit) : undefined, expiresAt: form.expiresAt || undefined, active: form.active, usageCount: 0 });
-      router.push("/admin/dashboard/discounts");
+      router.push("/admin/dashboard/marketing/discounts");
     } catch {
       setError("Failed to create discount.");
       setSaving(false);
@@ -33,7 +33,7 @@ export default function NewDiscountPage() {
   return (
     <div className="space-y-5 max-w-xl">
       <div className="flex items-center gap-3">
-        <Link href="/admin/dashboard/discounts" className="p-2 rounded-xl text-gray-500 hover:bg-white hover:text-gray-800 transition-colors">
+        <Link href="/admin/dashboard/marketing/discounts" className="p-2 rounded-xl text-gray-500 hover:bg-white hover:text-gray-800 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <h1 className="text-xl font-bold text-gray-900">Create discount</h1>

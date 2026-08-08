@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./authHelpers";
 
 export const list = query({
   args: {},
@@ -17,7 +18,10 @@ export const getBySlot = query({
 
 export const generateUploadUrl = mutation({
   args: {},
-  handler: async (ctx) => ctx.storage.generateUploadUrl(),
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    return ctx.storage.generateUploadUrl();
+  },
 });
 
 export const getStorageUrl = query({
@@ -37,6 +41,7 @@ export const upsert = mutation({
     rotationImages: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("heroContent")
       .withIndex("by_slot", (q) => q.eq("slot", args.slot))

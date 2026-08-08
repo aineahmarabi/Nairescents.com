@@ -6,8 +6,8 @@ import { useClerk } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
-  LayoutDashboard, Package, ShoppingCart, Users, Tag, Megaphone,
-  BarChart2, Settings, Globe, LogOut, ChevronRight, X, Layers, MessageSquare,
+  LayoutDashboard, Package, ShoppingCart, Users, Megaphone,
+  BarChart2, Settings, Globe, LogOut, ChevronRight, X, MessageSquare, Wallet,
 } from "lucide-react";
 
 const NAV = [
@@ -19,8 +19,7 @@ const NAV = [
 ];
 const MARKETING_NAV = [
   { label: "Marketing", href: "/admin/dashboard/marketing", icon: Megaphone },
-  { label: "Discounts", href: "/admin/dashboard/discounts", icon: Tag },
-  { label: "Content", href: "/admin/dashboard/content", icon: Layers },
+  { label: "Finance", href: "/admin/dashboard/finance", icon: Wallet },
   { label: "Analytics", href: "/admin/dashboard/analytics", icon: BarChart2 },
 ];
 const BOTTOM_NAV = [

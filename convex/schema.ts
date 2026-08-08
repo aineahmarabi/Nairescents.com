@@ -185,6 +185,14 @@ export default defineSchema({
     status: v.union(v.literal("new"), v.literal("read"), v.literal("responded")),
   }).index("by_status", ["status"]),
 
+  expenses: defineTable({
+    description: v.string(),
+    category: v.string(),
+    amount: v.number(),
+    date: v.number(),
+    notes: v.optional(v.string()),
+  }).index("by_date", ["date"]),
+
   analyticsEvents: defineTable({
     sessionId: v.string(),
     type: v.union(

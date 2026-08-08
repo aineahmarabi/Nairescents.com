@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { requireAdmin } from "./authHelpers";
 
 const orderItem = v.object({
   productId: v.string(),
@@ -14,6 +15,7 @@ const orderItem = v.object({
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const all = await ctx.db.query("orders").collect();
     return all.sort((a, b) => b._creationTime - a._creationTime);
   },
@@ -22,6 +24,7 @@ export const list = query({
 export const newCount = query({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const all = await ctx.db.query("orders").collect();
     return all.filter(
       (o) => o.fulfillmentStatus === "Unfulfilled" && o.paymentStatus !== "Failed" && o.paymentStatus !== "Refunded"
@@ -29,11 +32,17 @@ export const newCount = query({
   },
 });
 
+// Not admin-gated: also called server-side (email notifications) with no Clerk
+// session available. Safe to leave public since it requires an unguessable
+// Convex document ID — knowledge of the exact ID is the access control here,
+// same pattern as an order-confirmation link.
 export const get = query({
   args: { id: v.id("orders") },
   handler: async (ctx, args) => ctx.db.get(args.id),
 });
 
+// Not admin-gated: called from the Paystack verify route (no Clerk session).
+// Safe to leave public — requires an unguessable Paystack transaction reference.
 export const getByReference = query({
   args: { reference: v.string() },
   handler: async (ctx, args) =>
@@ -113,6 +122,8 @@ export const create = mutation({
   },
 });
 
+// Not admin-gated: called right after Paystack transaction init (no Clerk
+// session). Safe — caller must already know the specific order's Convex ID.
 export const setPaystackReference = mutation({
   args: { id: v.id("orders"), reference: v.string() },
   handler: async (ctx, args) => ctx.db.patch(args.id, { paystackReference: args.reference }),
@@ -129,11 +140,15 @@ export const updateStatus = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...patch } = args;
     return ctx.db.patch(id, patch);
   },
 });
 
+// Not admin-gated: called from the Paystack webhook (HMAC-signature-verified
+// upstream) and verify route (no Clerk session). Safe — requires an
+// unguessable Paystack reference and can only set Paid/Failed on that one order.
 export const markByReference = mutation({
   args: {
     reference: v.string(),
@@ -181,6 +196,7 @@ export const bulkImport = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     let created = 0;
     const errors: string[] = [];
     for (const o of args.orders) {
@@ -202,6 +218,7 @@ export const bulkImport = mutation({
 export const fixOrderNumberPrefix = mutation({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const all = await ctx.db.query("orders").collect();
     let fixed = 0;
     for (const o of all) {
@@ -217,7 +234,10 @@ export const fixOrderNumberPrefix = mutation({
 
 export const remove = mutation({
   args: { id: v.id("orders") },
-  handler: async (ctx, args) => ctx.db.delete(args.id),
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    return ctx.db.delete(args.id);
+  },
 });
 
 export const removeWithInventoryRestore = mutation({
@@ -226,6 +246,7 @@ export const removeWithInventoryRestore = mutation({
     restoreInventory: v.boolean(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const order = await ctx.db.get(args.id);
     if (!order) return;
 
