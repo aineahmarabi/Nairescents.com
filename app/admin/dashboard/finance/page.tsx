@@ -29,6 +29,17 @@ const EXPENSE_CATEGORIES = [
   "Other",
 ];
 
+const CATEGORY_COLORS: Record<string, string> = {
+  "Rent": "#0B3D33",
+  "Utilities": "#C9A96E",
+  "Packaging & Shipping": "#10b981",
+  "Marketing": "#6366f1",
+  "Salaries & Wages": "#f59e0b",
+  "Supplies & Inventory": "#0ea5e9",
+  "Transport": "#f87171",
+  "Other": "#9ca3af",
+};
+
 function fmt(n: number) {
   return `KES ${n.toLocaleString()}`;
 }
@@ -93,7 +104,7 @@ export default function AdminFinancePage() {
   const loading = orders === undefined || expenses === undefined;
 
   const data = useMemo(() => {
-    const zero = { incomeCur: 0, incomePrev: 0, expensesCur: 0, expensesPrev: 0, profitCur: 0, profitPrev: 0, chartData: [] as { label: string; income: number; expenses: number }[], rangeExpenses: [] as NonNullable<typeof expenses> };
+    const zero = { incomeCur: 0, incomePrev: 0, expensesCur: 0, expensesPrev: 0, profitCur: 0, profitPrev: 0, chartData: [] as { label: string; income: number; expenses: number }[], rangeExpenses: [] as NonNullable<typeof expenses>, categoryBreakdown: [] as { category: string; amount: number; pct: number }[] };
     if (!orders || !expenses) return zero;
 
     const paidOrders = orders.filter((o) => o.paymentStatus === "Paid");
@@ -112,6 +123,14 @@ export default function AdminFinancePage() {
       expenses: expenses.filter((e) => e.date >= w.start && e.date < w.end).reduce((s, e) => s + e.amount, 0),
     }));
 
+    const categoryTotals = new Map<string, number>();
+    for (const e of rangeExpenses) {
+      categoryTotals.set(e.category, (categoryTotals.get(e.category) ?? 0) + e.amount);
+    }
+    const categoryBreakdown = Array.from(categoryTotals.entries())
+      .map(([category, amount]) => ({ category, amount, pct: expensesCur > 0 ? (amount / expensesCur) * 100 : 0 }))
+      .sort((a, b) => b.amount - a.amount);
+
     return {
       incomeCur,
       incomePrev,
@@ -121,6 +140,7 @@ export default function AdminFinancePage() {
       profitPrev: incomePrev - expensesPrev,
       chartData,
       rangeExpenses: rangeExpenses.sort((a, b) => b.date - a.date),
+      categoryBreakdown,
     };
   }, [orders, expenses, bounds]);
 
@@ -255,6 +275,47 @@ export default function AdminFinancePage() {
               </ResponsiveContainer>
             )}
           </Card>
+
+          {/* ── expenses by category ────────────────────────────────────────── */}
+          <div className="mt-5">
+            <Card title="Expenses by Category">
+              {loading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-8 w-full" />
+                  ))}
+                </div>
+              ) : data.categoryBreakdown.length === 0 ? (
+                <div className="h-32 flex flex-col items-center justify-center gap-2 text-gray-300">
+                  <Receipt className="w-8 h-8" />
+                  <span className="text-sm text-gray-400">No expenses recorded for this period.</span>
+                </div>
+              ) : (
+                <ul className="space-y-4">
+                  {data.categoryBreakdown.map((c) => (
+                    <li key={c.category}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CATEGORY_COLORS[c.category] ?? "#9ca3af" }} />
+                          <span className="text-sm text-gray-700 font-medium">{c.category}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-xs text-gray-400">{c.pct.toFixed(1)}%</span>
+                          <span className="text-sm font-semibold text-gray-900">{fmt(c.amount)}</span>
+                        </div>
+                      </div>
+                      <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{ width: `${c.pct}%`, backgroundColor: CATEGORY_COLORS[c.category] ?? "#9ca3af" }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          </div>
         </div>
 
         {/* ── expenses panel ──────────────────────────────────────────────── */}
