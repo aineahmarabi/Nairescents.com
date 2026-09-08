@@ -125,7 +125,7 @@ export default function ScentedCandlePromo() {
               animate={{ opacity: 1, scale: 1, y: 0, filter: "brightness(1)" }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative w-full max-w-5xl bg-[#030a08] rounded-[2rem] overflow-hidden border border-[#C9A96E]/30 shadow-[0_0_100px_rgba(201,169,110,0.15)]"
+              className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto custom-scrollbar bg-[#030a08] rounded-[2rem] border border-[#C9A96E]/30 shadow-[0_0_100px_rgba(201,169,110,0.15)]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
@@ -148,14 +148,14 @@ export default function ScentedCandlePromo() {
                 />
               </div>
 
-              <div className="relative z-10 flex flex-col md:flex-row items-center p-8 md:p-12 gap-8 md:gap-12">
+              <div className="relative z-10 flex flex-col md:flex-row items-center p-6 sm:p-8 md:p-12 gap-6 md:gap-12">
                 
                 {/* Product Showcase Image - Cinematic Zoom Reveal & Smooth Crossfade */}
                 <motion.div 
                   initial={{ opacity: 0, scale: 1.5, y: 30 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ duration: 2, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-                  className="flex-1 w-full max-w-[350px] md:max-w-none aspect-square relative perspective-[1200px]"
+                  className="w-full max-w-[220px] sm:max-w-[280px] md:max-w-[400px] aspect-square relative perspective-[1200px] flex-shrink-0"
                   onMouseMove={handleMouseMove}
                   onMouseLeave={handleMouseLeave}
                 >
@@ -195,16 +195,16 @@ export default function ScentedCandlePromo() {
                 </motion.div>
 
                 {/* Text Content - Staggered Elegant Fade In */}
-                <div className="flex-1 space-y-8 text-center md:text-left z-10 relative">
+                <div className="flex-1 space-y-6 md:space-y-8 text-center md:text-left z-10 relative w-full">
                   <motion.div
                     initial={{ opacity: 0, x: -30, filter: "blur(10px)" }}
                     animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
                     transition={{ duration: 1.2, delay: 0.8, ease: "easeOut" }}
                   >
-                    <h4 className="text-[#C9A96E] text-xs md:text-sm tracking-[0.3em] uppercase font-bold mb-3">
+                    <h4 className="text-[#C9A96E] text-[10px] sm:text-xs md:text-sm tracking-[0.3em] uppercase font-bold mb-2 md:mb-3">
                       The Ultimate Ambient Experience
                     </h4>
-                    <h2 className="text-white text-4xl md:text-5xl font-extrabold tracking-tighter leading-tight drop-shadow-2xl">
+                    <h2 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tighter leading-tight drop-shadow-2xl">
                       Scented <br className="hidden md:block" />
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C9A96E] to-[#fff3d4]">Candles.</span>
                     </h2>
@@ -214,7 +214,7 @@ export default function ScentedCandlePromo() {
                     initial={{ opacity: 0, y: 20, filter: "blur(5px)" }}
                     animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                     transition={{ duration: 1, delay: 1 }}
-                    className="text-white/60 text-lg max-w-md mx-auto md:mx-0 leading-relaxed font-light"
+                    className="text-white/60 text-sm sm:text-base md:text-lg max-w-md mx-auto md:mx-0 leading-relaxed font-light"
                   >
                     Discover the captivating essence of Naire Scents&apos; newest arrival. Exquisitely crafted in your choice of Metallic Black or premium Glass.
                   </motion.p>
@@ -225,14 +225,14 @@ export default function ScentedCandlePromo() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 1, delay: 1.2 }}
-                      className="space-y-5 pt-4"
+                      className="space-y-4 md:space-y-5 pt-2 md:pt-4"
                     >
-                      <div className="flex flex-wrap justify-center md:justify-start gap-3">
+                      <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-3">
                         {rawProduct.variants.map((v: any) => (
                           <button
                             key={v.id}
                             onClick={() => setSelectedVariantId(v.id)}
-                            className={`relative overflow-hidden px-5 py-2.5 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all duration-500 ${
+                            className={`relative overflow-hidden px-4 py-2 md:px-5 md:py-2.5 rounded-xl border text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-500 ${
                               selectedVariantId === v.id
                                 ? "border-[#C9A96E] text-[#0B3D33] bg-[#C9A96E] shadow-[0_0_20px_rgba(201,169,110,0.3)] scale-105"
                                 : "border-white/20 text-white hover:border-[#C9A96E]/50 bg-white/5 hover:bg-white/10"
@@ -242,7 +242,7 @@ export default function ScentedCandlePromo() {
                           </button>
                         ))}
                       </div>
-                      <div className="text-2xl font-bold text-white pt-2 overflow-hidden h-10">
+                      <div className="text-xl md:text-2xl font-bold text-white pt-1 md:pt-2 overflow-hidden h-8 md:h-10">
                         <AnimatePresence mode="popLayout">
                           <motion.div
                             key={displayPrice}
@@ -262,14 +262,14 @@ export default function ScentedCandlePromo() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 1.4 }}
-                    className="pt-6 flex flex-col sm:flex-row gap-4 justify-center md:justify-start"
+                    className="pt-4 md:pt-6 flex flex-col sm:flex-row gap-3 md:gap-4 justify-center md:justify-start w-full"
                   >
                     <button
                       onClick={handleBuy}
-                      className="group relative flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#C9A96E] to-[#e8cf9c] text-[#0B3D33] rounded-2xl font-black uppercase tracking-[0.2em] overflow-hidden hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(201,169,110,0.4)]"
+                      className="w-full sm:w-auto group relative flex items-center justify-center gap-2 md:gap-3 px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-[#C9A96E] to-[#e8cf9c] text-[#0B3D33] rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-xs md:text-sm overflow-hidden hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(201,169,110,0.4)]"
                     >
                       <span className="relative z-10 flex items-center gap-2">
-                        <ShoppingBag size={18} /> Buy Now
+                        <ShoppingBag size={18} className="w-4 h-4 md:w-5 md:h-5" /> Buy Now
                       </span>
                       <div className="absolute inset-0 bg-white/40 transform -skew-x-12 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                     </button>
@@ -279,9 +279,9 @@ export default function ScentedCandlePromo() {
                         handleClose();
                         router.push(`/products/${rawProduct.handle}`);
                       }}
-                      className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border-2 border-white/10 text-white font-bold uppercase tracking-widest hover:border-white/30 hover:bg-white/5 transition-all duration-300"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl border-2 border-white/10 text-white font-bold uppercase tracking-widest text-xs md:text-sm hover:border-white/30 hover:bg-white/5 transition-all duration-300"
                     >
-                      Explore <ArrowRight size={18} />
+                      Explore <ArrowRight size={18} className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
                   </motion.div>
                 </div>
