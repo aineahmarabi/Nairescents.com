@@ -173,3 +173,41 @@ export const cleanupImport = mutation({
     return { deleted, activated };
   },
 });
+
+export const fixCandleVariants = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const p = await ctx.db
+      .query("products")
+      .withIndex("by_handle", (q) => q.eq("handle", "scented-candles"))
+      .first();
+    if (!p) throw new Error("Product not found");
+
+    await ctx.db.patch(p._id, {
+      hasVariants: true,
+      options: [
+        {
+          name: "Casing",
+          values: ["Metallic Black", "Glass"]
+        }
+      ],
+      variants: [
+        {
+          id: "variant-metallic-black",
+          title: "Metallic Black",
+          price: 1000,
+          inventory: 10,
+          option1: "Metallic Black"
+        },
+        {
+          id: "variant-glass",
+          title: "Glass",
+          price: 1200,
+          inventory: 10,
+          option1: "Glass"
+        }
+      ]
+    });
+    return "Fixed variants";
+  }
+});

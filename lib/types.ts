@@ -6,6 +6,21 @@ export type Brand = typeof BRANDS[number];
 export type Gender = typeof GENDERS[number];
 export type WhenToWear = typeof WHEN_TO_WEAR[number];
 
+export interface Variant {
+  id: string;
+  title: string;
+  price: number;
+  compareAtPrice?: number;
+  inventory: number;
+  option1?: string;
+  option2?: string;
+}
+
+export interface ProductOption {
+  name: string;
+  values: string[];
+}
+
 export interface Product {
   id: string;
   handle: string;
@@ -26,6 +41,9 @@ export interface Product {
   sellWhenOutOfStock: boolean;
   status: 'Active' | 'Draft';
   tags: { bestSeller: boolean; featured: boolean; newIn: boolean };
+  hasVariants?: boolean;
+  options?: ProductOption[];
+  variants?: Variant[];
   createdAt: string;
   updatedAt: string;
 }

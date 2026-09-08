@@ -39,6 +39,9 @@ function toProductCard(p: any): Product {
       newIn: p.tags.includes("New In"),
       featured: p.tags.includes("Featured"),
     },
+    hasVariants: p.hasVariants ?? false,
+    options: p.options ?? [],
+    variants: p.variants ?? [],
     createdAt: "",
     updatedAt: "",
   };
@@ -57,6 +60,8 @@ export default function ProductDetailPage({ params }: Props) {
   const track = useTrackEvent();
   const imgRef = useRef<HTMLDivElement>(null);
   const [qty, setQty] = useState(1);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [imgFailed, setImgFailed] = useState(false);
   const [thumbFailed, setThumbFailed] = useState<Record<number, boolean>>({});
 
@@ -66,7 +71,12 @@ export default function ProductDetailPage({ params }: Props) {
   const product = rawProduct ? toProductCard(rawProduct) : null;
 
   useEffect(() => {
-    if (product) track("product_view", { productId: product.id, productTitle: product.title, value: product.price });
+    if (product) {
+      track("product_view", { productId: product.id, productTitle: product.title, value: product.price });
+      if (product.hasVariants && product.variants?.length && !selectedVariantId) {
+        setSelectedVariantId(product.variants[0].id);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product?.id]);
 
@@ -114,19 +124,30 @@ export default function ProductDetailPage({ params }: Props) {
     );
   }
 
-  const img = product!.images?.[0];
+  const allImages = product?.images || [];
+  const img = allImages[activeImageIndex] || allImages[0];
 
   const canBuy = !!product;
 
+  const currentVariant = useMemo(() => {
+    if (!product?.hasVariants || !product?.variants?.length || !selectedVariantId) return null;
+    return product.variants.find(v => v.id === selectedVariantId) || product.variants[0];
+  }, [product, selectedVariantId]);
+
+  const displayPrice = currentVariant ? currentVariant.price : (product?.price ?? 0);
+  const displayComparePrice = currentVariant ? currentVariant.compareAtPrice : product?.compareAtPrice;
+
   function handleAddToCart() {
     if (!canBuy) return;
-    addItem({ productId: product!.id, title: product!.title, price: product!.price, imageUrl: img, quantity: qty });
+    const itemTitle = currentVariant ? `${product!.title} - ${currentVariant.title}` : product!.title;
+    addItem({ productId: product!.id, variantId: currentVariant?.id, title: itemTitle, price: displayPrice, imageUrl: img, quantity: qty });
     if (imgRef.current) triggerFly(img ?? "", imgRef.current.getBoundingClientRect());
   }
 
   function handleBuyNow() {
     if (!canBuy) return;
-    addItem({ productId: product!.id, title: product!.title, price: product!.price, imageUrl: img, quantity: qty });
+    const itemTitle = currentVariant ? `${product!.title} - ${currentVariant.title}` : product!.title;
+    addItem({ productId: product!.id, variantId: currentVariant?.id, title: itemTitle, price: displayPrice, imageUrl: img, quantity: qty });
     router.push("/checkout");
   }
 
@@ -184,7 +205,13 @@ export default function ProductDetailPage({ params }: Props) {
             {product!.images.length > 1 && (
               <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
                 {product!.images.slice(0, 6).map((url, i) => (
-                  <div key={i} className="relative w-16 h-20 flex-none rounded-lg overflow-hidden border border-white/10 bg-white/5">
+                  <button 
+                    key={i} 
+                    onClick={() => setActiveImageIndex(i)}
+                    className={`relative w-16 h-20 flex-none rounded-lg overflow-hidden border transition-all ${
+                      activeImageIndex === i ? 'border-[#C9A96E] opacity-100' : 'border-white/10 opacity-60 hover:opacity-100'
+                    } bg-white/5`}
+                  >
                     {!thumbFailed[i] ? (
                       <Image src={url} alt={`${product!.title} view ${i + 1}`} fill className="object-cover" sizes="64px" onError={() => setThumbFailed(p => ({ ...p, [i]: true }))} />
                     ) : (
@@ -192,7 +219,7 @@ export default function ProductDetailPage({ params }: Props) {
                         <span className="text-white/10 text-[10px]">✦</span>
                       </div>
                     )}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -223,14 +250,40 @@ export default function ProductDetailPage({ params }: Props) {
             {/* Price */}
             <div className="flex items-baseline gap-3">
               <span className="text-[#C9A96E] text-2xl font-bold">
-                KES {product!.price.toLocaleString()}
+                KES {displayPrice.toLocaleString()}
               </span>
-              {product!.compareAtPrice && product!.compareAtPrice > product!.price && (
+              {displayComparePrice && displayComparePrice > displayPrice && (
                 <span className="text-white/30 text-lg line-through">
-                  KES {product!.compareAtPrice.toLocaleString()}
+                  KES {displayComparePrice.toLocaleString()}
                 </span>
               )}
             </div>
+
+            {/* Variant Selector */}
+            {product!.hasVariants && product!.variants && product!.variants.length > 0 && (
+              <div className="space-y-4 pt-2">
+                {product!.options?.map((option, idx) => (
+                  <div key={idx}>
+                    <p className="text-white/60 text-sm mb-2">{option.name}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {product!.variants?.map((v) => (
+                        <button
+                          key={v.id}
+                          onClick={() => setSelectedVariantId(v.id)}
+                          className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
+                            selectedVariantId === v.id
+                              ? "border-[#C9A96E] text-[#0B3D33] bg-[#C9A96E]"
+                              : "border-white/20 text-white hover:border-white/50 bg-white/5"
+                          }`}
+                        >
+                          {v.title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Divider */}
             <div className="h-px bg-white/10" />
