@@ -129,10 +129,9 @@ export default function ProductDetailPage({ params }: Props) {
 
   const canBuy = !!product;
 
-  const currentVariant = useMemo(() => {
-    if (!product?.hasVariants || !product?.variants?.length || !selectedVariantId) return null;
-    return product.variants.find(v => v.id === selectedVariantId) || product.variants[0];
-  }, [product, selectedVariantId]);
+  const currentVariant = (!product?.hasVariants || !product?.variants?.length || !selectedVariantId)
+    ? null
+    : (product.variants.find(v => v.id === selectedVariantId) || product.variants[0]);
 
   const displayPrice = currentVariant ? currentVariant.price : (product?.price ?? 0);
   const displayComparePrice = currentVariant ? currentVariant.compareAtPrice : product?.compareAtPrice;

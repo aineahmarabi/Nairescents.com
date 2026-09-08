@@ -216,7 +216,7 @@ export default function ScentedCandlePromo() {
                     transition={{ duration: 1, delay: 1 }}
                     className="text-white/60 text-lg max-w-md mx-auto md:mx-0 leading-relaxed font-light"
                   >
-                    Discover the captivating essence of Naire Scents' newest arrival. Exquisitely crafted in your choice of Metallic Black or premium Glass.
+                    Discover the captivating essence of Naire Scents&apos; newest arrival. Exquisitely crafted in your choice of Metallic Black or premium Glass.
                   </motion.p>
 
                   {/* Interactive Variant Selection */}
